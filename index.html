@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | V8 Live Flow</title>
+    <title>Sentinel OpsCenter | Final</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -13,17 +13,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- TEMA DARK NEON --- */
+        /* --- TEMA --- */
         :root {
             --bg-deep: #050508;
-            --glass-panel: rgba(20, 20, 30, 0.65);
-            --glass-modal: #0b0c12; 
+            --glass-panel: rgba(20, 20, 30, 0.6);
+            --glass-modal: #0f1015;
             --glass-border: rgba(255, 255, 255, 0.08);
             
             --text-main: #ffffff;
             --text-muted: #8b9bb4;
 
-            /* Palette */
+            /* Cores Neon */
             --neon-blue: #00f3ff;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
@@ -31,24 +31,15 @@
 
             --font-main: 'Outfit', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
-            
-            --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
 
-        /* Scrollbar Discreta */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #08080c; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-
         body {
             background-color: var(--bg-deep);
-            /* Animação de Fundo Suave */
-            background: linear-gradient(-45deg, #050508, #13132b, #0f0518, #000000);
+            background: linear-gradient(-45deg, #050508, #161625, #0a0514, #020205);
             background-size: 400% 400%;
-            animation: gradientBG 20s ease infinite;
+            animation: gradientBG 15s ease infinite;
             color: var(--text-main);
             height: 100vh;
             display: flex;
@@ -59,91 +50,83 @@
             0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
         }
 
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0b10; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
         /* --- SIDEBAR --- */
         aside.sidebar {
             width: 300px;
-            background: rgba(10, 12, 18, 0.9);
-            backdrop-filter: blur(15px);
+            background: rgba(10, 11, 16, 0.9);
+            backdrop-filter: blur(10px);
             border-right: 1px solid var(--glass-border);
             display: flex; flex-direction: column; flex-shrink: 0; z-index: 20;
         }
         .sidebar-header {
-            height: 70px; display: flex; align-items: center; padding: 0 25px;
+            height: 65px; display: flex; align-items: center; padding: 0 20px;
             border-bottom: 1px solid var(--glass-border);
-            font-weight: 600; color: var(--text-muted); font-size: 0.8rem;
+            font-weight: 600; color: var(--text-muted); font-size: 0.85rem;
             text-transform: uppercase; letter-spacing: 1px;
         }
         .alert-feed { flex: 1; overflow-y: auto; padding: 0; }
         .alert-item {
-            padding: 18px 25px; border-bottom: 1px solid rgba(255,255,255,0.03);
-            animation: slideInLeft 0.4s var(--ease-smooth); border-left: 3px solid transparent;
-            transition: background 0.2s;
+            padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            animation: slideInLeft 0.4s ease-out; border-left: 3px solid transparent;
         }
-        .alert-item:hover { background: rgba(255,255,255,0.03); }
+        .alert-item:hover { background: rgba(255,255,255,0.02); }
         .alert-item.crit { border-left-color: var(--neon-red); }
-        .alert-time { font-family: var(--font-code); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; opacity: 0.7; }
-        .alert-title { font-weight: 600; color: #fff; margin-bottom: 3px; font-size: 0.9rem; }
-        .alert-msg { font-size: 0.8rem; color: var(--neon-red); font-weight: 500; }
+        .alert-time { font-family: var(--font-code); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; }
+        .alert-title { font-weight: 700; color: #fff; margin-bottom: 3px; font-size: 0.9rem; }
+        .alert-msg { font-size: 0.8rem; color: var(--neon-red); }
 
         /* --- MAIN AREA --- */
-        main.content-area {
-            flex: 1; display: flex; flex-direction: column; position: relative;
-        }
+        main.content-area { flex: 1; display: flex; flex-direction: column; position: relative; }
         
         header {
-            height: 70px; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 35px; border-bottom: 1px solid var(--glass-border);
-            background: rgba(5, 5, 8, 0.5); backdrop-filter: blur(10px);
+            height: 65px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 8, 0.6); backdrop-filter: blur(10px);
         }
-        .brand { font-size: 1.5rem; letter-spacing: 0.5px; font-weight: 300; display: flex; align-items: center; gap: 12px; }
-        .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 20px rgba(0, 243, 255, 0.3); }
+        .brand { font-size: 1.4rem; letter-spacing: 1px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
+        .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
         .pulse { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
         
-        .toolbar { display: flex; gap: 15px; }
-        .btn { border: none; padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.3s var(--ease-smooth); }
+        .toolbar { display: flex; gap: 12px; }
+        .btn { border: none; padding: 9px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.3s; }
         .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
-        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
-        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.2); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0, 243, 255, 0.4); }
+        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
+        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* --- DASHBOARD GRID --- */
+        /* --- TILES --- */
         .dashboard-grid {
-            flex: 1; padding: 35px; overflow-y: auto; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            grid-auto-rows: 170px; /* Altura fixa */
-            gap: 25px; align-content: start;
+            flex: 1; padding: 30px; overflow-y: auto; display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); grid-auto-rows: 160px;
+            gap: 20px; align-content: start;
         }
-
         .monitor-tile {
-            background: var(--glass-panel); backdrop-filter: blur(15px);
+            background: var(--glass-panel); backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border); border-left: 4px solid var(--glass-border);
-            border-radius: 16px; padding: 25px; cursor: pointer;
-            transition: all 0.3s var(--ease-smooth);
+            border-radius: 16px; padding: 22px; cursor: pointer; transition: all 0.2s ease;
             position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
         }
-        .monitor-tile:hover { transform: translateY(-5px) scale(1.01); box-shadow: 0 15px 40px rgba(0,0,0,0.6); border-top-color: rgba(255,255,255,0.2); }
-        
+        .monitor-tile:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.2); }
         .tile-ok { border-left-color: var(--neon-green); } 
         .tile-warn { border-left-color: var(--neon-orange); } 
         .tile-crit { border-left-color: var(--neon-red); }
 
-        .tile-head { margin-bottom: 10px; }
-        .tile-name { font-size: 1.1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
-        .tile-url { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tile-head { margin-bottom: 5px; }
+        .tile-name { font-size: 1.1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .tile-url { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .tile-val-big { font-size: 2.2rem; font-weight: 700; color: #fff; font-family: var(--font-code); line-height: 1; }
+        .tile-unit { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
         
-        .tile-body { display: flex; align-items: baseline; gap: 6px; }
-        .tile-val-big { font-size: 2.4rem; font-weight: 700; color: #fff; font-family: var(--font-code); line-height: 1; }
-        .tile-unit { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
-
         .tile-footer { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto; }
-        .tile-badge { 
-            font-size: 0.7rem; padding: 5px 12px; border-radius: 20px; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 1px; 
-            background: rgba(0,0,0,0.3); border: 1px solid transparent;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+        .tile-badge { font-size: 0.7rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.3); border: 1px solid transparent; }
 
-        /* --- DETAIL MODAL (LIVE) --- */
+        /* --- DETAIL MODAL (CORRIGIDO) --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
@@ -153,34 +136,48 @@
         .overlay-backdrop.active { opacity: 1; pointer-events: all; }
 
         .detail-panel {
-            width: 96%; max-width: 1400px; height: 92vh;
-            background: var(--glass-modal); border: 1px solid var(--glass-border); border-radius: 20px;
+            width: 95%; max-width: 1400px; height: 90vh; background: var(--glass-modal);
+            border: 1px solid var(--glass-border); border-radius: 20px;
             box-shadow: 0 50px 100px rgba(0,0,0,0.95); display: flex; flex-direction: column;
-            transform: scale(0.96); transition: 0.4s var(--ease-smooth);
+            transform: scale(0.95); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
+        /* HEADER CORRIGIDO - LIMPO E ALINHADO */
         .detail-head {
-            padding: 25px 40px; border-bottom: 1px solid var(--glass-border);
+            padding: 30px 40px; border-bottom: 1px solid var(--glass-border);
             display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.01);
         }
-        .dh-info h2 { font-size: 1.8rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
-        .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
+        
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            border-left: 4px solid var(--neon-blue); /* Barra Azul */
+            padding-left: 20px; /* Espaçamento */
+        }
+
+        .dh-title { 
+            font-size: 1.8rem; font-weight: 700; color: #fff; 
+            line-height: 1.2; margin-bottom: 5px; 
+        }
+        
+        .dh-url { 
+            color: var(--text-muted); font-size: 0.85rem; 
+            font-family: var(--font-code); opacity: 0.8; 
+        }
+
         .dh-actions { display: flex; gap: 15px; }
 
         .detail-body {
             flex: 1; padding: 30px 40px; overflow-y: auto;
-            display: grid; 
-            grid-template-columns: 3fr 1fr; /* Layout 3:1 */
-            grid-template-rows: auto 1fr;
-            gap: 30px;
+            display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 30px;
         }
 
         /* KPIs */
         .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .kpi-card { background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
         .kpi-card label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; letter-spacing: 1px; }
-        .kpi-card .val { font-size: 2.2rem; font-weight: 600; font-family: var(--font-code); color: #fff; transition: color 0.3s; }
+        .kpi-card .val { font-size: 2.2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
 
         /* Charts */
         .main-chart-box {
@@ -190,7 +187,7 @@
         .chart-fill { flex: 1; width: 100%; min-height: 0; position: relative; }
 
         .sidebar-col { display: flex; flex-direction: column; gap: 25px; height: 100%; }
-        .donut-box { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; height: 250px; display: flex; justify-content: center; align-items: center; }
+        .donut-box { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; height: 250px; display: flex; justify-content: center; align-items: center;}
         
         .log-box {
             flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px;
@@ -201,7 +198,6 @@
             display: flex; justify-content: space-between; padding: 10px 0; 
             border-bottom: 1px dashed rgba(255,255,255,0.05); animation: fadeInLog 0.4s ease-out;
         }
-        
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
         .section-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; letter-spacing: 1px; }
 
@@ -224,7 +220,7 @@
     <aside class="sidebar">
         <div class="sidebar-header">Event History</div>
         <div class="alert-feed" id="alertFeed">
-            <div style="padding:25px; font-size:0.8rem; color:#555; text-align:center;">Monitoramento Limpo</div>
+            <div style="padding:25px; font-size:0.8rem; color:#555; text-align:center;">Sem alertas recentes</div>
         </div>
     </aside>
 
@@ -243,18 +239,18 @@
         <div class="dashboard-grid" id="tileGrid"></div>
         
         <div class="empty-placeholder" id="emptyState" style="display: none;">
-            <div style="font-size: 4rem; margin-bottom: 15px;">🛰️</div>
-            <h3>Aguardando Sinais</h3>
-            <p>Adicione um serviço para iniciar a telemetria em tempo real.</p>
+            <div style="font-size: 4rem; margin-bottom: 15px;">📡</div>
+            <h3>Dashboard Vazio</h3>
+            <p>Adicione um serviço para monitorar.</p>
         </div>
     </main>
 
     <div class="overlay-backdrop" id="detailOverlay" onclick="handleBackdropClick(event, 'detailOverlay')">
         <div class="detail-panel">
             <div class="detail-head">
-                <div>
-                    <div class="dh-info"><h2 id="detailName">--</h2></div>
-                    <div class="dh-meta"><span id="detailUrl">--</span><span id="detailInterval">--</span></div>
+                <div class="title-block">
+                    <div class="dh-title" id="detailName">Service Name</div>
+                    <div class="dh-url" id="detailUrl">https://api.example.com</div>
                 </div>
                 <div class="dh-actions">
                     <button class="btn btn-glass" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="deleteCurrentMonitor()">Excluir</button>
@@ -264,10 +260,10 @@
 
             <div class="detail-body">
                 <div class="kpi-deck">
-                    <div class="kpi-card"><label>Status</label><div class="val" id="kpiStatus">--</div></div>
-                    <div class="kpi-card"><label>Latência</label><div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div></div>
+                    <div class="kpi-card"><label>Status Saúde</label><div class="val" id="kpiStatus">--</div></div>
+                    <div class="kpi-card"><label>Latência Atual</label><div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div></div>
                     <div class="kpi-card"><label>Chamadas Totais</label><div class="val" id="kpiTotal">0</div></div>
-                    <div class="kpi-card"><label>Taxa de Erro (5m)</label><div class="val" id="kpiErrorRate">0%</div></div>
+                    <div class="kpi-card"><label>Taxa Erro (5m)</label><div class="val" id="kpiErrorRate">0%</div></div>
                 </div>
 
                 <div class="main-chart-box">
@@ -277,11 +273,10 @@
 
                 <div class="sidebar-col">
                     <div class="donut-box">
-                        <span class="section-label" style="position:absolute; top:20px; left:20px;">DISTRIBUIÇÃO</span>
                         <div style="height: 100%; width: 100%; display: flex; justify-content: center;"><canvas id="donutChart"></canvas></div>
                     </div>
                     <div class="log-box">
-                        <span class="section-label" style="border-color: #666;">LAST 10 LOGS</span>
+                        <span class="section-label" style="border-color: #666;">LIVE LOGS</span>
                         <div class="log-list" id="logList"></div>
                     </div>
                 </div>
@@ -292,7 +287,7 @@
     <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
             <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Novo Monitor</h2>
-            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Production API"></div>
+            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Checkout API"></div>
             <div class="form-group"><label>URL Endpoint</label><input type="url" id="inpUrl" placeholder="https://..."></div>
             <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
             <div class="modal-actions">
@@ -329,24 +324,21 @@
             if (config.publicKey) emailjs.init(config.publicKey);
             renderTiles();
             renderAlertFeed();
-            setInterval(engineTick, 1000); // 1s Tick
+            setInterval(engineTick, 1000); 
         });
 
-        // --- ENGINE (LIVE FLOW) ---
+        // --- ENGINE ---
         function engineTick() {
             const now = Date.now();
-            
-            // 1. Check Pings
+            // 1. Ping Check
             monitors.forEach(m => {
                 if (now - (m.lastCheck || 0) >= (m.interval * 1000)) runCheck(m);
             });
-
-            // 2. Update Live Chart (Sliding Window Effect)
+            // 2. Smooth Chart Slide
             if (activeMonitorId && mainChartInst) {
-                // Desliza o eixo X para o 'agora' a cada segundo, criando o efeito de movimento
-                mainChartInst.options.scales.x.min = now - (60 * 1000); // Janela de 60s
+                mainChartInst.options.scales.x.min = now - (60 * 1000);
                 mainChartInst.options.scales.x.max = now;
-                mainChartInst.update('none'); // Update visual sem reprocessar tudo
+                mainChartInst.update('none');
             }
         }
 
@@ -369,10 +361,10 @@
             checkAlerts(m);
             saveData();
             updateTile(m);
-            
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
+        // --- ALERTS ---
         function checkAlerts(m) {
             const now = Date.now();
             if (now - (m.lastAlert || 0) < 5 * 60000) return;
@@ -413,7 +405,7 @@
             });
         }
 
-        // --- UI TILES ---
+        // --- TILES ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             const empty = document.getElementById('emptyState');
@@ -438,7 +430,6 @@
             else if(!m.lastCode) { sText = 'WAITING'; sColor = '#666'; sBorder = '#666'; }
 
             el.className = `monitor-tile ${sClass}`;
-            // Badge alinhado a direita inferior
             el.innerHTML = `
                 <div>
                     <div class="tile-head">
@@ -458,7 +449,6 @@
 
         // --- DETAIL VIEW ---
         function handleBackdropClick(e, id) { if(e.target.id === id) { if(id === 'detailOverlay') closeDetail(); else closeModals(); } }
-        
         function openDetail(id) {
             activeMonitorId = id;
             const m = monitors.find(x => x.id === id);
@@ -466,7 +456,7 @@
             document.getElementById('detailOverlay').classList.add('active');
             document.getElementById('detailName').innerText = m.name;
             document.getElementById('detailUrl').innerText = m.url;
-            document.getElementById('detailInterval').innerText = `Sync: ${m.interval}s`;
+            // Removed interval from header per layout change request
             initDetailCharts(m);
             updateDetailView(m);
         }
@@ -474,7 +464,6 @@
         function closeDetail() { document.getElementById('detailOverlay').classList.remove('active'); activeMonitorId = null; if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy(); }
 
         function updateDetailView(m) {
-            // 1. KPI Update
             const code = m.lastCode || 0; let color = '#0aff68', text = 'SAUDÁVEL';
             if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; } else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
             document.getElementById('kpiStatus').innerText = text; document.getElementById('kpiStatus').style.color = color;
@@ -483,21 +472,16 @@
             const rate = recent.length ? ((errs / recent.length) * 100).toFixed(1) : 0;
             const rEl = document.getElementById('kpiErrorRate'); rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
 
-            // 2. Log Update (Last 10)
-            const logList = document.getElementById('logList');
-            logList.innerHTML = '';
+            const logList = document.getElementById('logList'); logList.innerHTML = '';
             m.history.slice(-10).reverse().forEach(h => {
                 let cClass = h.code >= 500 ? 'c-err' : (h.code >= 400 ? 'c-warn' : 'c-ok');
                 logList.innerHTML += `<div class="log-row"><span style="color:#666">${new Date(h.x).toLocaleTimeString()}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
-            // 3. Chart Data Update (Main Chart sliding handled in engineTick)
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
-                // No update() here to allow engineTick to handle smooth sliding
+                // Sliding window handled in engineTick
             }
-            
-            // 4. Pie Update
             if(donutChartInst) {
                 const codes = Object.keys(m.stats); donutChartInst.data.labels = codes;
                 donutChartInst.data.datasets[0].data = codes.map(c => m.stats[c]);
@@ -510,7 +494,6 @@
             if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy();
             Chart.defaults.color = '#8b9bb4'; Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
-            // MAIN CHART (TIMELINE)
             const ctxMain = document.getElementById('mainChart').getContext('2d');
             mainChartInst = new Chart(ctxMain, {
                 type: 'line',
@@ -540,7 +523,6 @@
                 }
             });
 
-            // PIE CHART (NO HOLE)
             const ctxDonut = document.getElementById('donutChart').getContext('2d');
             donutChartInst = new Chart(ctxDonut, {
                 type: 'pie',
@@ -549,7 +531,7 @@
             });
         }
 
-        // --- DATA & NET ---
+        // --- MANAGERS ---
         function addMonitorSafe() {
             try {
                 const name = document.getElementById('inpName').value; const url = document.getElementById('inpUrl').value; let interval = parseInt(document.getElementById('inpInterval').value);
@@ -557,7 +539,7 @@
                 const newM = { id: Date.now(), name, url, interval, history: [], stats: {}, errorsSeq: 0 };
                 monitors.push(newM); saveData(); renderTiles(); closeModals();
                 document.getElementById('inpName').value=''; document.getElementById('inpUrl').value=''; document.getElementById('inpInterval').value='10';
-                runCheck(newM); // Immediate Ping
+                runCheck(newM);
             } catch (e) { alert("Erro: " + e.message); }
         }
         function deleteCurrentMonitor() { if(confirm("Excluir?")) { monitors = monitors.filter(m => m.id !== activeMonitorId); saveData(); closeDetail(); renderTiles(); } }

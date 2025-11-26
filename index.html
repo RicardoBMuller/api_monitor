@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | Stable</title>
+    <title>Sentinel OpsCenter | V5.1 Stable</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -12,16 +12,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- THEME CONFIG --- */
+        /* --- CONFIGURAÇÃO DO TEMA --- */
         :root {
             --bg-deep: #050508;
             --glass-panel: rgba(20, 20, 30, 0.6);
-            --glass-modal: #0f1015;
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.08);
             
             --text-main: #ffffff;
             --text-muted: #8b9bb4;
 
+            /* Cores Neon */
             --neon-blue: #00f3ff;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
@@ -54,29 +54,48 @@
             background: rgba(5, 5, 8, 0.8);
             backdrop-filter: blur(10px);
             z-index: 10;
+            flex-shrink: 0;
         }
 
         .brand { font-size: 1.4rem; letter-spacing: 1px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
         .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
         .pulse { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
 
-        .btn {
-            border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
-        }
+        .btn { border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.3s; }
         .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
         .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
         .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* --- DASHBOARD TILES --- */
-        .dashboard-grid {
-            padding: 30px; overflow-y: auto; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            grid-auto-rows: min-content;
-            gap: 20px; align-content: start;
+        /* --- ÁREA PRINCIPAL --- */
+        .main-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            padding: 30px;
         }
 
+        /* ESTADO VAZIO (Centralizado Absoluto) */
+        .empty-state {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-muted); pointer-events: none; z-index: 0;
+        }
+        .empty-icon { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+
+        /* GRADE DE TILES */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-auto-rows: min-content;
+            gap: 20px;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            position: relative; z-index: 1;
+        }
+
+        /* CARD (TILE) */
         .monitor-tile {
             background: var(--glass-panel);
             backdrop-filter: blur(12px);
@@ -86,24 +105,26 @@
             padding: 20px;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative; overflow: hidden;
+            height: 140px; /* Altura fixa para uniformidade */
+            display: flex; flex-direction: column; justify-content: space-between;
         }
         .monitor-tile:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.2); }
 
+        /* Status Colors */
         .tile-ok { border-left-color: var(--neon-green); }
         .tile-warn { border-left-color: var(--neon-orange); }
         .tile-crit { border-left-color: var(--neon-red); }
 
-        .tile-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-        .tile-name { font-size: 1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-        .tile-url { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-code); }
+        .tile-head { display: flex; justify-content: space-between; align-items: flex-start; }
+        .tile-name { font-size: 1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+        .tile-url { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; }
         
         .tile-body { display: flex; align-items: baseline; gap: 8px; }
         .tile-val { font-size: 2rem; font-weight: 700; color: #fff; font-family: var(--font-code); }
         .tile-unit { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-        .tile-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); margin-left: auto; }
+        .tile-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); }
 
-        /* --- DETAIL OVERLAY --- */
+        /* --- MODAL DE DETALHES (Drill Down) --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -114,58 +135,43 @@
 
         .detail-panel {
             width: 95%; max-width: 1300px; height: 90vh;
-            background: #0f1015;
-            border: 1px solid var(--glass-border); border-radius: 16px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
-            display: flex; flex-direction: column;
+            background: #0f1015; border: 1px solid var(--glass-border); border-radius: 16px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9); display: flex; flex-direction: column;
             transform: scale(0.95); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
         .detail-head {
-            padding: 25px 35px; border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.02);
+            padding: 20px 30px; border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);
         }
         .dh-info h2 { font-size: 1.6rem; font-weight: 600; color: #fff; margin-bottom: 5px; }
         .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
-        .dh-actions { display: flex; gap: 15px; }
-
-        .detail-body {
-            flex: 1; padding: 30px; overflow-y: auto;
-            display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 30px;
-        }
+        
+        .detail-body { flex: 1; padding: 30px; overflow-y: auto; display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 25px; }
 
         .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
-        .kpi-card label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; letter-spacing: 1px; }
+        .kpi-card label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; }
         .kpi-card .val { font-size: 2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
 
-        .main-chart-box {
-            background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px;
-            min-height: 350px; display: flex; flex-direction: column; position: relative;
-        }
-        .section-label { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; }
-
-        .sidebar-col { display: flex; flex-direction: column; gap: 25px; }
-        .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 320px; }
-        
-        .log-box {
-            flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;
-            font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column;
-        }
+        .main-chart-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; min-height: 350px; position: relative; display: flex; flex-direction: column; }
+        .sidebar-col { display: flex; flex-direction: column; gap: 20px; }
+        .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 300px; position: relative; display: flex; justify-content: center;}
+        .log-box { flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column; }
         .log-list { overflow-y: auto; flex: 1; padding-right: 5px; }
         .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
+        .section-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; }
 
-        /* --- FORMS & MODALS --- */
+        /* --- FORMS & MODALS (Fixed) --- */
         .modal-form {
             background: #121218; width: 450px; padding: 35px; border-radius: 16px; 
             border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
-        /* Alterado para 'text' para evitar validação nativa bugada, validaremos no JS */
         .form-group input { 
             width: 100%; padding: 14px; background: rgba(255,255,255,0.03); 
             border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s;
@@ -174,7 +180,6 @@
 
         .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
 
-        .empty-placeholder { grid-column: 1/-1; text-align: center; margin-top: 100px; color: var(--text-muted); opacity: 0.5; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(10, 255, 104, 0); } }
     </style>
 </head>
@@ -186,47 +191,50 @@
             Sentinel <b>OpsCenter</b>
         </div>
         <div style="display: flex; gap: 15px;">
-            <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Configurações</button>
+            <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Config</button>
             <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
         </div>
     </header>
 
-    <div class="dashboard-grid" id="tileGrid">
-        <div class="empty-placeholder" id="emptyState">
-            <div style="font-size: 3rem; margin-bottom: 10px;">📡</div>
+    <div class="main-container">
+        <div id="emptyState" class="empty-state" style="display: none;">
+            <div class="empty-icon">📡</div>
             <h3>Nenhum serviço ativo</h3>
-            <p>Adicione um monitor para iniciar.</p>
+            <p>Adicione um monitor para iniciar a telemetria.</p>
         </div>
+
+        <div class="dashboard-grid" id="tileGrid">
+            </div>
     </div>
 
     <div class="overlay-backdrop" id="detailOverlay">
         <div class="detail-panel">
             <div class="detail-head">
                 <div>
-                    <div class="dh-info"><h2 id="detailName">API Name</h2></div>
-                    <div class="dh-meta"><span id="detailUrl">...</span><span id="detailInterval">...</span></div>
+                    <div class="dh-info"><h2 id="detailName">--</h2></div>
+                    <div class="dh-meta"><span id="detailUrl">--</span><span id="detailInterval">--</span></div>
                 </div>
-                <div class="dh-actions">
-                    <button class="btn btn-glass" style="border-color: var(--neon-red); color: var(--neon-red);" onclick="deleteCurrentMonitor()">Excluir Monitor</button>
+                <div style="display:flex; gap:10px">
+                    <button class="btn btn-glass" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="deleteCurrentMonitor()">Excluir</button>
                     <button class="btn btn-glass" onclick="closeDetail()">Fechar ✕</button>
                 </div>
             </div>
 
             <div class="detail-body">
                 <div class="kpi-deck">
-                    <div class="kpi-card"><label>Status Saúde</label><div class="val" id="kpiStatus" style="font-size: 1.4rem;">--</div></div>
+                    <div class="kpi-card"><label>Status Saúde</label><div class="val" id="kpiStatus">--</div></div>
                     <div class="kpi-card"><label>Latência Atual</label><div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div></div>
                     <div class="kpi-card"><label>Total Chamadas</label><div class="val" id="kpiTotal">0</div></div>
                     <div class="kpi-card"><label>Taxa de Erro</label><div class="val" id="kpiErrorRate">0%</div></div>
                 </div>
                 <div class="main-chart-box">
-                    <span class="section-label">LINHA DO TEMPO (LATÊNCIA & STATUS)</span>
+                    <span class="section-label">LINHA DO TEMPO</span>
                     <div style="flex:1; width:100%; position: relative;"><canvas id="mainChart"></canvas></div>
                 </div>
                 <div class="sidebar-col">
                     <div class="donut-box">
                         <span class="section-label">HTTP CODES</span>
-                        <div style="height: 240px; position: relative; display: flex; justify-content: center;"><canvas id="donutChart"></canvas></div>
+                        <div style="height: 240px; width: 100%; display: flex; justify-content: center;"><canvas id="donutChart"></canvas></div>
                     </div>
                     <div class="log-box">
                         <span class="section-label" style="border-color: #666;">LIVE LOGS</span>
@@ -242,19 +250,19 @@
             <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Novo Monitor</h2>
             <div class="form-group">
                 <label>Nome do Serviço</label>
-                <input type="text" id="inpName" placeholder="Ex: Microsserviço Pagamentos">
+                <input type="text" id="inpName" placeholder="Ex: Checkout API">
             </div>
             <div class="form-group">
                 <label>URL Endpoint</label>
                 <input type="url" id="inpUrl" placeholder="https://api...">
             </div>
             <div class="form-group">
-                <label>Intervalo de Checagem (Segundos)</label>
-                <input type="text" id="inpInterval" value="30" placeholder="Ex: 30">
+                <label>Intervalo (Segundos)</label>
+                <input type="number" id="inpInterval" value="30" min="1" placeholder="Ex: 30">
             </div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
-                <button class="btn btn-primary" onclick="addMonitor()">Salvar Monitor</button>
+                <button class="btn btn-primary" onclick="addMonitorSafe()">Salvar Monitor</button>
             </div>
         </div>
     </div>
@@ -274,14 +282,14 @@
     </div>
 
     <script>
-        // --- CORE DATA & STATE ---
-        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_v5_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_ops_v5_config')) || {};
+        // --- STATE ---
+        let monitors = JSON.parse(localStorage.getItem('sentinel_v5_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_v5_config')) || {};
         let activeMonitorId = null;
-        
         let mainChartInst = null;
         let donutChartInst = null;
 
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             if (config.publicKey) emailjs.init(config.publicKey);
             renderTiles();
@@ -292,7 +300,7 @@
         function engineTick() {
             const now = Date.now();
             monitors.forEach(m => {
-                // Intervalo em SEGUNDOS * 1000 = MS
+                // Intervalo em SEGUNDOS * 1000
                 if (now - m.lastCheck >= (m.interval * 1000)) runCheck(m);
             });
         }
@@ -307,35 +315,35 @@
             if(!m.stats) m.stats = {};
             m.stats[res.code] = (m.stats[res.code] || 0) + 1;
             m.totalRequests = (m.totalRequests || 0) + 1;
-            
             m.lastCode = res.code;
             m.lastLatency = res.latency;
 
             if(res.code >= 400) m.errorsSeq = (m.errorsSeq || 0) + 1;
             else m.errorsSeq = 0;
             
-            checkAlerts(m, res);
+            checkAlerts(m);
             saveData();
-            
-            updateTile(m); 
+            updateTile(m);
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
-        // --- TILES ---
+        // --- RENDER ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
+            const empty = document.getElementById('emptyState');
+
             if(monitors.length === 0) {
-                document.getElementById('emptyState').style.display = 'block';
-                grid.innerHTML = '';
-                grid.appendChild(document.getElementById('emptyState'));
+                empty.style.display = 'flex';
+                grid.innerHTML = ''; 
                 return;
             }
-            document.getElementById('emptyState').style.display = 'none';
+            
+            empty.style.display = 'none';
+            
             monitors.forEach(m => {
                 let el = document.getElementById(`tile-${m.id}`);
                 if(!el) {
                     el = document.createElement('div');
-                    el.className = 'monitor-tile tile-ok';
                     el.id = `tile-${m.id}`;
                     el.onclick = () => openDetail(m.id);
                     grid.appendChild(el);
@@ -368,17 +376,55 @@
             `;
         }
 
-        // --- DETAIL MODAL ---
+        // --- SAFE ADD FUNCTION (AQUI ESTAVA O ERRO) ---
+        function addMonitorSafe() {
+            try {
+                const nameInput = document.getElementById('inpName');
+                const urlInput = document.getElementById('inpUrl');
+                const intInput = document.getElementById('inpInterval');
+
+                if(!nameInput || !urlInput || !intInput) {
+                    alert("Erro interno: Inputs não encontrados."); return;
+                }
+
+                const name = nameInput.value;
+                const url = urlInput.value;
+                let intervalVal = intInput.value;
+
+                if(!name || !url) { alert("Preencha nome e URL."); return; }
+                if(!intervalVal) intervalVal = "30"; // Default safe
+
+                const interval = parseInt(intervalVal);
+
+                monitors.push({
+                    id: Date.now(), name: name, url: url, interval: interval,
+                    history: [], stats: {}, errorsSeq: 0
+                });
+
+                saveData();
+                renderTiles(); // Agora renderTiles é seguro
+                closeModals();
+
+                // Reset
+                nameInput.value = '';
+                urlInput.value = '';
+                intInput.value = '30';
+
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao salvar: " + e.message);
+            }
+        }
+
+        // --- DETAIL VIEW ---
         function openDetail(id) {
             activeMonitorId = id;
             const m = monitors.find(x => x.id === id);
             if(!m) return;
-
             document.getElementById('detailOverlay').classList.add('active');
             document.getElementById('detailName').innerText = m.name;
             document.getElementById('detailUrl').innerText = m.url;
             document.getElementById('detailInterval').innerText = `Sync: ${m.interval}s`;
-
             initDetailCharts(m);
             updateDetailView(m);
         }
@@ -418,11 +464,11 @@
                 mainChartInst.data.datasets[0].data = m.history;
                 mainChartInst.data.datasets[0].borderColor = color;
                 const gradient = mainChartInst.ctx.createLinearGradient(0,0,0,300);
-                // Simple color switch for gradient
-                if(color=='#0aff68') { gradient.addColorStop(0,'rgba(10,255,104,0.3)'); gradient.addColorStop(1,'rgba(10,255,104,0)'); }
-                else if(color=='#ff0f4b') { gradient.addColorStop(0,'rgba(255,15,75,0.3)'); gradient.addColorStop(1,'rgba(255,15,75,0)'); }
-                else { gradient.addColorStop(0,'rgba(255,145,0,0.3)'); gradient.addColorStop(1,'rgba(255,145,0,0)'); }
-                
+                // Simple gradient logic
+                let r=0,g=0,b=0;
+                if(color=='#0aff68'){r=10;g=255;b=104;} else if(color=='#ff0f4b'){r=255;g=15;b=75;} else {r=255;g=145;b=0;}
+                gradient.addColorStop(0, `rgba(${r},${g},${b},0.3)`);
+                gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
                 mainChartInst.data.datasets[0].backgroundColor = gradient;
                 mainChartInst.update('none');
             }
@@ -438,7 +484,6 @@
         function initDetailCharts(m) {
             if(mainChartInst) mainChartInst.destroy();
             if(donutChartInst) donutChartInst.destroy();
-            
             Chart.defaults.color = '#8b9bb4';
             Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
@@ -456,47 +501,9 @@
             });
         }
 
-        // --- ADD MONITOR FIXED FUNCTION ---
-        function addMonitor() {
-            try {
-                const name = document.getElementById('inpName').value.trim();
-                const url = document.getElementById('inpUrl').value.trim();
-                let intervalRaw = document.getElementById('inpInterval').value;
-                
-                // Tratamento agressivo: troca virgula por ponto
-                intervalRaw = intervalRaw.replace(',', '.');
-                const interval = parseFloat(intervalRaw);
-
-                if (!name || !url) {
-                    alert("Por favor, preencha Nome e URL.");
-                    return;
-                }
-                if (isNaN(interval) || interval <= 0) {
-                    alert("Intervalo inválido. Digite um número em segundos (Ex: 30).");
-                    return;
-                }
-
-                monitors.push({
-                    id: Date.now(), name: name, url: url, interval: interval,
-                    history: [], stats: {}, errorsSeq: 0
-                });
-                
-                saveData();
-                renderTiles();
-                closeModals();
-                
-                // Limpeza
-                document.getElementById('inpName').value = '';
-                document.getElementById('inpUrl').value = '';
-                document.getElementById('inpInterval').value = '30';
-            } catch (e) {
-                console.error(e);
-                alert("Erro ao salvar: " + e.message);
-            }
-        }
-
+        // --- OTHER MANAGERS ---
         function deleteCurrentMonitor() {
-            if(confirm("Deseja excluir?")) {
+            if(confirm("Excluir monitor?")) {
                 monitors = monitors.filter(m => m.id !== activeMonitorId);
                 saveData(); closeDetail(); renderTiles();
             }
@@ -511,10 +518,10 @@
             });
         }
 
-        async function checkAlerts(m, res) {
+        function checkAlerts(m) {
             if(m.errorsSeq >= 5 && (Date.now() - (m.lastAlert||0) > 15*60000) && config.serviceId) {
                 m.lastAlert = Date.now();
-                try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: "5 Falhas Consecutivas", to_email: config.destination }); } catch(e){}
+                try { emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: "5 Falhas", to_email: config.destination }); } catch(e){}
             }
         }
 
@@ -523,20 +530,25 @@
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_ops_v5_config', JSON.stringify(config));
+            localStorage.setItem('sentinel_v5_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
             closeModals();
         }
-        function saveData() { localStorage.setItem('sentinel_ops_v5_monitors', JSON.stringify(monitors)); }
+        function saveData() { localStorage.setItem('sentinel_v5_monitors', JSON.stringify(monitors)); }
         
-        function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') populateConfig(); }
-        function populateConfig() {
-            document.getElementById('cfgService').value = config.serviceId||'';
-            document.getElementById('cfgTemplate').value = config.templateId||'';
-            document.getElementById('cfgKey').value = config.publicKey||'';
-            document.getElementById('cfgDest').value = config.destination||'';
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
+            if(id==='modalConfig') {
+                document.getElementById('cfgService').value = config.serviceId||'';
+                document.getElementById('cfgTemplate').value = config.templateId||'';
+                document.getElementById('cfgKey').value = config.publicKey||'';
+                document.getElementById('cfgDest').value = config.destination||'';
+            }
         }
-        function closeModals() { document.getElementById('modalAdd').classList.remove('active'); document.getElementById('modalConfig').classList.remove('active'); }
+        function closeModals() { 
+            document.getElementById('modalAdd').classList.remove('active'); 
+            document.getElementById('modalConfig').classList.remove('active'); 
+        }
 
     </script>
 </body>

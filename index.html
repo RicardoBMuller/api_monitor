@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | V5.1 Stable</title>
+    <title>Sentinel OpsCenter | V5.2 Stable</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -131,13 +131,14 @@
             z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
-        .overlay-backdrop.active { opacity: 1; pointer-events: all; }
+        .overlay-backdrop.active { opacity: 1; pointer-events: all; cursor: pointer; /* Indica que é clicável */ }
 
         .detail-panel {
             width: 95%; max-width: 1300px; height: 90vh;
             background: #0f1015; border: 1px solid var(--glass-border); border-radius: 16px;
             box-shadow: 0 50px 100px rgba(0,0,0,0.9); display: flex; flex-direction: column;
             transform: scale(0.95); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: default; /* O conteúdo não deve fechar o modal */
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
@@ -156,6 +157,16 @@
         .kpi-card .val { font-size: 2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
 
         .main-chart-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; min-height: 350px; position: relative; display: flex; flex-direction: column; }
+        
+        /* CORREÇÃO DO GRÁFICO: Classe para preencher o container */
+        .chart-container-fill {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            min-height: 0; /* Fix para flexbox */
+        }
+
         .sidebar-col { display: flex; flex-direction: column; gap: 20px; }
         .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 300px; position: relative; display: flex; justify-content: center;}
         .log-box { flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column; }
@@ -169,6 +180,7 @@
         .modal-form {
             background: #121218; width: 450px; padding: 35px; border-radius: 16px; 
             border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            cursor: default;
         }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
@@ -207,7 +219,7 @@
             </div>
     </div>
 
-    <div class="overlay-backdrop" id="detailOverlay">
+    <div class="overlay-backdrop" id="detailOverlay" onclick="handleBackdropClick(event, 'detailOverlay')">
         <div class="detail-panel">
             <div class="detail-head">
                 <div>
@@ -229,7 +241,7 @@
                 </div>
                 <div class="main-chart-box">
                     <span class="section-label">LINHA DO TEMPO</span>
-                    <div style="flex:1; width:100%; position: relative;"><canvas id="mainChart"></canvas></div>
+                    <div class="chart-container-fill"><canvas id="mainChart"></canvas></div>
                 </div>
                 <div class="sidebar-col">
                     <div class="donut-box">
@@ -245,7 +257,7 @@
         </div>
     </div>
 
-    <div class="overlay-backdrop" id="modalAdd">
+    <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
             <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Novo Monitor</h2>
             <div class="form-group">
@@ -258,7 +270,7 @@
             </div>
             <div class="form-group">
                 <label>Intervalo (Segundos)</label>
-                <input type="number" id="inpInterval" value="30" min="1" placeholder="Ex: 30">
+                <input type="number" id="inpInterval" value="10" min="1" placeholder="Ex: 10">
             </div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
@@ -267,7 +279,7 @@
         </div>
     </div>
 
-    <div class="overlay-backdrop" id="modalConfig">
+    <div class="overlay-backdrop" id="modalConfig" onclick="handleBackdropClick(event, 'modalConfig')">
         <div class="modal-form">
             <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Configurações</h2>
             <div class="form-group"><label>Service ID</label><input type="text" id="cfgService"></div>
@@ -301,7 +313,8 @@
             const now = Date.now();
             monitors.forEach(m => {
                 // Intervalo em SEGUNDOS * 1000
-                if (now - m.lastCheck >= (m.interval * 1000)) runCheck(m);
+                // Adicionado fallback (m.lastCheck || 0) para segurança
+                if (now - (m.lastCheck || 0) >= (m.interval * 1000)) runCheck(m);
             });
         }
 
@@ -376,7 +389,7 @@
             `;
         }
 
-        // --- SAFE ADD FUNCTION (AQUI ESTAVA O ERRO) ---
+        // --- SAFE ADD FUNCTION (CORREÇÃO DO PING INICIAL) ---
         function addMonitorSafe() {
             try {
                 const nameInput = document.getElementById('inpName');
@@ -392,23 +405,34 @@
                 let intervalVal = intInput.value;
 
                 if(!name || !url) { alert("Preencha nome e URL."); return; }
-                if(!intervalVal) intervalVal = "30"; // Default safe
+                if(!intervalVal || parseInt(intervalVal) <= 0) intervalVal = "10"; // Default safe 10s
 
                 const interval = parseInt(intervalVal);
 
-                monitors.push({
-                    id: Date.now(), name: name, url: url, interval: interval,
-                    history: [], stats: {}, errorsSeq: 0
-                });
+                const newMonitor = {
+                    id: Date.now(),
+                    name: name,
+                    url: url,
+                    interval: interval,
+                    history: [],
+                    stats: {},
+                    errorsSeq: 0,
+                    // lastCheck não é definido aqui para forçar o primeiro ping
+                };
+
+                monitors.push(newMonitor);
 
                 saveData();
-                renderTiles(); // Agora renderTiles é seguro
+                renderTiles();
                 closeModals();
 
                 // Reset
                 nameInput.value = '';
                 urlInput.value = '';
-                intInput.value = '30';
+                intInput.value = '10';
+
+                // CORREÇÃO CRÍTICA: Força o primeiro "ping" imediatamente
+                runCheck(newMonitor);
 
             } catch (e) {
                 console.error(e);
@@ -416,7 +440,18 @@
             }
         }
 
-        // --- DETAIL VIEW ---
+        // --- DETAIL VIEW & BACKDROP CLICK ---
+        function handleBackdropClick(e, modalId) {
+            // Fecha apenas se o clique foi exatamente no backdrop, não nos filhos
+            if (e.target.id === modalId) {
+                if (modalId === 'detailOverlay') {
+                    closeDetail();
+                } else {
+                    closeModals();
+                }
+            }
+        }
+
         function openDetail(id) {
             activeMonitorId = id;
             const m = monitors.find(x => x.id === id);
@@ -464,7 +499,6 @@
                 mainChartInst.data.datasets[0].data = m.history;
                 mainChartInst.data.datasets[0].borderColor = color;
                 const gradient = mainChartInst.ctx.createLinearGradient(0,0,0,300);
-                // Simple gradient logic
                 let r=0,g=0,b=0;
                 if(color=='#0aff68'){r=10;g=255;b=104;} else if(color=='#ff0f4b'){r=255;g=15;b=75;} else {r=255;g=145;b=0;}
                 gradient.addColorStop(0, `rgba(${r},${g},${b},0.3)`);
@@ -491,6 +525,7 @@
             mainChartInst = new Chart(ctxMain, {
                 type: 'line',
                 data: { datasets: [{ data: m.history, borderColor: '#00f3ff', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 }] },
+                // CORREÇÃO DO GRÁFICO: maintainAspectRatio: false
                 options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
             const ctxDonut = document.getElementById('donutChart').getContext('2d');

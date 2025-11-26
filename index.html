@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Sentinel Dashboard Pro</title>
+    <title>Personal Sentinel w/ Alerts</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
-        /* --- CORE DESIGN SYSTEM --- */
+        /* --- DESIGN SYSTEM --- */
         :root {
             --bg-dark: #090910;
             --glass-surface: rgba(255, 255, 255, 0.03);
@@ -19,13 +20,11 @@
             --text-muted: #8b9bb4;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
         body {
             background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 242, 255, 0.04) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(255, 56, 100, 0.04) 0%, transparent 20%);
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
@@ -55,39 +54,25 @@
         h1 { font-weight: 300; letter-spacing: 1px; font-size: 1.4rem; }
         h1 b { font-weight: 700; color: var(--neon-blue); }
 
-        /* --- CONTROLES --- */
+        .controls { display: flex; gap: 15px; align-items: center; }
+
+        /* --- BUTTONS --- */
         .btn-main {
             background: linear-gradient(90deg, var(--neon-blue), #0066ff);
-            border: none;
-            padding: 10px 24px;
-            border-radius: 6px;
-            color: #000;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+            border: none; padding: 10px 24px; border-radius: 6px;
+            color: #000; font-weight: 700; cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); transition: 0.3s;
         }
         .btn-main:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(0, 242, 255, 0.4); }
 
-        .time-filters {
-            background: rgba(255,255,255,0.05);
-            padding: 4px;
-            border-radius: 8px;
-            display: flex;
-            gap: 2px;
+        .btn-icon {
+            background: var(--glass-surface); border: 1px solid var(--glass-border);
+            color: var(--text-muted); width: 40px; height: 40px; border-radius: 6px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; transition: 0.3s;
         }
-
-        .filter-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 6px 16px;
-            font-size: 0.8rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .filter-btn.active { background: rgba(255,255,255,0.1); color: white; font-weight: 600; }
+        .btn-icon:hover { color: white; border-color: white; }
+        .btn-icon.configured { color: var(--neon-green); border-color: var(--neon-green); }
 
         /* --- GRID --- */
         .monitor-grid {
@@ -98,201 +83,167 @@
             padding-right: 8px;
             padding-bottom: 50px;
         }
-        
         .monitor-grid::-webkit-scrollbar { width: 6px; }
         .monitor-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-        /* --- CARD API --- */
+        /* --- CARD --- */
         .api-card {
-            background: var(--glass-surface);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease, border-color 0.3s;
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 0.5s ease;
+            background: var(--glass-surface); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; position: relative;
+            backdrop-filter: blur(10px); transition: transform 0.3s;
+            display: flex; flex-direction: column; animation: fadeIn 0.5s ease;
         }
-
         .api-card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
-        /* Header do Card */
-        .card-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 15px; }
         .api-info h3 { font-size: 1rem; margin-bottom: 4px; }
         .api-info .url { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; }
-        .api-info .interval-tag { 
-            font-size: 0.65rem; background: rgba(255,255,255,0.1); 
-            padding: 2px 6px; border-radius: 4px; margin-left: 8px; 
-            vertical-align: middle; color: var(--text-muted);
-        }
+        .interval-tag { font-size: 0.65rem; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; margin-left: 8px; color: var(--text-muted); }
 
-        /* Status Grande */
-        .status-display { text-align: right; }
-        .status-code { font-size: 1.8rem; font-weight: 800; line-height: 1; }
-        .status-text { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .status-code { font-size: 1.8rem; font-weight: 800; line-height: 1; text-align: right; }
+        .status-text { font-size: 0.7rem; text-transform: uppercase; font-weight: 600; text-align: right; }
 
-        /* Chart Area */
-        .chart-wrapper {
-            height: 100px;
-            width: 100%;
-            margin: 5px 0 15px 0;
-        }
+        /* Cores */
+        .c-2xx { color: var(--neon-green); } .c-4xx { color: var(--neon-warn); } .c-5xx { color: var(--neon-red); }
+        .b-2xx { border-color: rgba(0, 255, 157, 0.2); } .b-4xx { border-color: rgba(255, 184, 0, 0.2); } .b-5xx { border-color: rgba(255, 56, 100, 0.2); }
 
-        /* LISTA DE VOLUMETRIA (NOVA ÁREA) */
-        .volumetry-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding: 10px 0;
-            border-top: 1px solid var(--glass-border);
-            border-bottom: 1px solid var(--glass-border);
-            margin-bottom: 10px;
-            min-height: 40px;
-        }
-
-        .vol-tag {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 4px;
-            background: rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-        }
-        .vol-tag b { font-weight: 700; color: #fff; }
-
-        /* Cores de Status */
-        .c-2xx { color: var(--neon-green); }
-        .c-4xx { color: var(--neon-warn); }
-        .c-5xx { color: var(--neon-red); }
+        /* Chart & Volumetry */
+        .chart-wrapper { height: 100px; width: 100%; margin: 5px 0 15px 0; }
+        .volumetry-list { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0; border-top: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border); margin-bottom: 10px; min-height: 40px; }
+        .vol-tag { font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; background: rgba(0,0,0,0.3); display: flex; gap: 6px; border: 1px solid transparent; }
         
-        .b-2xx { border-color: rgba(0, 255, 157, 0.2); }
-        .b-4xx { border-color: rgba(255, 184, 0, 0.2); }
-        .b-5xx { border-color: rgba(255, 56, 100, 0.2); }
+        /* Stats Footer */
+        .stats-footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: auto; }
+        .stats-footer b { color: white; display: block; font-size: 0.9rem; }
 
-        /* Stats Footer (Total Geral) */
-        .stats-footer {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: auto;
-        }
-        .stat-group b { color: white; display: block; font-size: 0.9rem; }
-
-        /* Botão Remover */
-        .btn-remove {
-            position: absolute; top: 20px; right: 20px;
-            background: none; border: none; color: var(--glass-border);
-            cursor: pointer; font-size: 1.2rem; line-height: 0.5;
-            transition: color 0.2s;
-        }
+        .btn-remove { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--glass-border); cursor: pointer; font-size: 1.2rem; line-height: 0.5; }
         .btn-remove:hover { color: var(--neon-red); }
 
-        /* --- MODAL --- */
-        .modal-wrap {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
-            z-index: 999; display: none; align-items: center; justify-content: center;
-        }
+        /* --- MODALS --- */
+        .modal-wrap { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 999; display: none; align-items: center; justify-content: center; }
         .modal-wrap.active { display: flex; animation: fadeIn 0.3s; }
-
-        .modal-box {
-            background: #12121a; border: 1px solid var(--glass-border);
-            padding: 30px; border-radius: 16px; width: 450px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-
+        .modal-box { background: #12121a; border: 1px solid var(--glass-border); padding: 30px; border-radius: 16px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted); }
-        .input-group input { 
-            width: 100%; padding: 12px; background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; outline: none;
-        }
+        .input-group input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 6px; outline: none; }
         .input-group input:focus { border-color: var(--neon-blue); }
         
         .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; }
 
+        /* Notificação Toast */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #1e1e2f; border-left: 4px solid var(--neon-blue); padding: 15px 25px; color: white; z-index: 1000; animation: slideIn 0.5s, fadeOut 0.5s 4s forwards; display: none; }
+        .toast.error { border-left-color: var(--neon-red); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <header>
-            <h1>API <b>Sentinel</b></h1>
-            
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <div class="time-filters">
-                    <button class="filter-btn active" onclick="setGlobalTimeWindow(1, this)">1m</button>
-                    <button class="filter-btn" onclick="setGlobalTimeWindow(5, this)">5m</button>
-                    <button class="filter-btn" onclick="setGlobalTimeWindow(10, this)">10m</button>
-                </div>
-                <button class="btn-main" onclick="openModal()">+ Adicionar Monitor</button>
+            <h1>Personal <b>Sentinel</b></h1>
+            <div class="controls">
+                <button class="btn-icon" id="btnConfig" onclick="openConfigModal()" title="Configurar Alertas Email">⚙️</button>
+                <button class="btn-main" onclick="openAddModal()">+ Monitor</button>
             </div>
         </header>
 
         <div class="monitor-grid" id="grid">
-            <div style="grid-column: 1/-1; text-align: center; padding-top: 50px; color: var(--glass-border);">
-                Nenhuma API monitorada. Clique em "+ Adicionar Monitor".
+            <div id="empty-msg" style="grid-column: 1/-1; text-align: center; padding-top: 50px; color: var(--glass-border);">
+                Nenhuma API configurada. Adicione um monitor.
             </div>
         </div>
     </div>
 
-    <div class="modal-wrap" id="modal">
+    <div class="modal-wrap" id="modalAdd">
         <div class="modal-box">
-            <h2 style="margin-bottom: 20px;">Nova Monitoria</h2>
-            
+            <h2 style="margin-bottom: 20px;">Novo Monitor</h2>
             <div class="input-group">
                 <label>Nome do Serviço</label>
-                <input type="text" id="inpName" placeholder="Ex: Gateway de Pagamento">
+                <input type="text" id="inpName" placeholder="Ex: API Produção">
             </div>
-            
             <div class="input-group">
                 <label>Endpoint URL</label>
-                <input type="url" id="inpUrl" placeholder="https://api.empresa.com/health">
+                <input type="url" id="inpUrl" placeholder="https://api.exemplo.com/health">
             </div>
-
             <div class="input-group">
                 <label>Intervalo de Ping (Minutos)</label>
                 <input type="number" id="inpInterval" value="1" min="0.1" step="0.1">
-                <small style="color: var(--text-muted); font-size: 0.7rem;">Aceita decimais (ex: 0.1 = 6 seg)</small>
             </div>
-
             <div class="modal-footer">
-                <button class="filter-btn" onclick="closeModal()">Cancelar</button>
-                <button class="btn-main" onclick="addApi()">Iniciar</button>
+                <button class="btn-cancel" onclick="closeModal('modalAdd')">Cancelar</button>
+                <button class="btn-main" onclick="addApi()">Salvar</button>
             </div>
         </div>
     </div>
 
+    <div class="modal-wrap" id="modalConfig">
+        <div class="modal-box">
+            <h2 style="margin-bottom: 20px;">Configurar Alertas Email (EmailJS)</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;">
+                Crie uma conta gratuita em <a href="https://www.emailjs.com" target="_blank" style="color:var(--neon-blue)">emailjs.com</a> para obter essas chaves.
+            </p>
+            <div class="input-group">
+                <label>Service ID</label>
+                <input type="text" id="cfgService" placeholder="service_xxxxx">
+            </div>
+            <div class="input-group">
+                <label>Template ID</label>
+                <input type="text" id="cfgTemplate" placeholder="template_xxxxx">
+            </div>
+            <div class="input-group">
+                <label>Public Key</label>
+                <input type="text" id="cfgKey" placeholder="user_xxxxx">
+            </div>
+            <div class="input-group">
+                <label>Enviar Alertas Para (Email)</label>
+                <input type="email" id="cfgDest" placeholder="seuemail@gmail.com">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal('modalConfig')">Cancelar</button>
+                <button class="btn-main" onclick="saveConfig()">Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
     <script>
-        // --- ESTADO GLOBAL ---
-        let monitors = [];
-        let globalTimeWindow = 1; // minutos
+        // --- ESTADO GLOBAL & PERSISTÊNCIA ---
+        let monitors = JSON.parse(localStorage.getItem('sentinel_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_config')) || {
+            serviceId: '', templateId: '', publicKey: '', destination: ''
+        };
+        
         let chartInstances = {};
+        // Cooldown para alertas: 30 minutos em ms
+        const ALERT_COOLDOWN = 30 * 60 * 1000; 
 
         // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Loop principal de verificação (Roda a cada 1s)
+            // Inicializa EmailJS se tiver chave
+            if(config.publicKey) emailjs.init(config.publicKey);
+            checkConfigStatus();
+
+            // Renderiza monitores salvos
+            if(monitors.length > 0) {
+                document.getElementById('empty-msg').style.display = 'none';
+                monitors.forEach(m => renderCard(m));
+            }
+
+            // Loop de monitoramento (1 seg)
             setInterval(engineLoop, 1000);
         });
 
-        // --- LÓGICA DE MONITORAMENTO (ENGINE) ---
+        // --- ENGINE ---
         function engineLoop() {
             const now = Date.now();
-            
             monitors.forEach(m => {
-                // Checa intervalo configurado pelo usuário
+                // Checa intervalo configurado
                 if (now - m.lastPingTime >= (m.interval * 60000)) {
                     performPing(m);
                 }
@@ -302,76 +253,85 @@
         async function performPing(monitor) {
             monitor.lastPingTime = Date.now();
             
-            // Simulação de resposta da API
+            // Simulação de chamada (Substitua por fetch real se CORS permitir)
             const result = await simulateNetworkCall();
             
             // Registra histórico
-            monitor.history.push({
-                x: monitor.lastPingTime,
-                y: result.latency,
-                code: result.code 
-            });
+            monitor.history.push({ x: monitor.lastPingTime, y: result.latency, code: result.code });
+            if (monitor.history.length > 100) monitor.history.shift(); // Limita histórico
 
-            // Lógica de Volumetria (Agrupa contagem por Status Code)
+            // Atualiza Stats
+            if (!monitor.stats) monitor.stats = {};
             if (!monitor.stats[result.code]) monitor.stats[result.code] = 0;
             monitor.stats[result.code]++;
-            
-            monitor.totalCalls++;
+            monitor.totalCalls = (monitor.totalCalls || 0) + 1;
 
-            // Limpeza de buffer
-            if (monitor.history.length > 300) monitor.history.shift();
+            // Salva estado atualizado no LocalStorage
+            saveMonitors();
 
+            // Atualiza UI
             updateCard(monitor, result);
+
+            // VERIFICA SE PRECISA ENVIAR ALERTA
+            checkAlert(monitor, result);
+        }
+
+        async function checkAlert(monitor, result) {
+            // Regra: Erro (>= 400) E Cooldown expirado E Configuração existe
+            const isError = result.code >= 400;
+            const now = Date.now();
+            const lastAlert = monitor.lastAlertTime || 0;
+            const canSend = (now - lastAlert) > ALERT_COOLDOWN;
+
+            if (isError && canSend && config.serviceId && config.publicKey) {
+                console.log(`Disparando alerta para ${monitor.name}...`);
+                
+                // Marca envio para evitar spam
+                monitor.lastAlertTime = now;
+                saveMonitors();
+
+                // Envia Email
+                const templateParams = {
+                    api_name: monitor.name,
+                    status_code: result.code,
+                    api_url: monitor.url,
+                    to_email: config.destination,
+                    message: `Latência registrada: ${result.latency}ms. Verifique o servidor imediatamente.`
+                };
+
+                try {
+                    await emailjs.send(config.serviceId, config.templateId, templateParams);
+                    showToast(`Alerta enviado por email para ${config.destination}`, 'success');
+                } catch (error) {
+                    console.error('Falha ao enviar email:', error);
+                    showToast('Erro ao enviar email de alerta', 'error');
+                }
+            }
         }
 
         function simulateNetworkCall() {
             return new Promise(resolve => {
-                // Probabilidades Variadas para testes de volumetria
+                // Probabilidades para teste
                 const rand = Math.random();
                 let code = 200;
-                if (rand > 0.60) code = 201; // Created
-                if (rand > 0.80) code = 422; // Unprocessable
-                if (rand > 0.90) code = 429; // Rate Limit
-                if (rand > 0.95) code = 500; // Server Error
+                if (rand > 0.70) code = 500; // Aumentei chance de erro para você testar o alerta
+                if (rand > 0.90) code = 200;
 
-                let latency = Math.floor(Math.random() * 150) + 20;
-                if (code >= 400) latency += 200; 
-
-                setTimeout(() => {
-                    resolve({ code, latency });
-                }, 300);
+                setTimeout(() => resolve({ code, latency: Math.floor(Math.random() * 200) + 20 }), 300);
             });
         }
 
-        // --- GERENCIAMENTO DE DADOS ---
-        function addMonitorData(name, url, interval) {
-            // Remove mensagem de "vazio" se existir
-            const grid = document.getElementById('grid');
-            if(monitors.length === 0) grid.innerHTML = '';
-
-            const id = Date.now() + Math.random();
-            const monitor = {
-                id,
-                name,
-                url,
-                interval: parseFloat(interval),
-                lastPingTime: 0,
-                totalCalls: 0,
-                stats: {}, // Objeto para contagem: { 200: 10, 500: 2 }
-                history: []
-            };
-            monitors.push(monitor);
-            renderCard(monitor);
-            performPing(monitor); // Primeiro ping imediato
-        }
-
-        // --- RENDERIZAÇÃO E UI ---
+        // --- UI FUNCTIONS ---
         function renderCard(m) {
+            document.getElementById('empty-msg').style.display = 'none';
             const grid = document.getElementById('grid');
+            
+            // Se já existe, não recria
+            if(document.getElementById(`card-${m.id}`)) return;
+
             const el = document.createElement('div');
             el.className = 'api-card';
             el.id = `card-${m.id}`;
-            
             el.innerHTML = `
                 <button class="btn-remove" onclick="removeMonitor(${m.id})">×</button>
                 <div class="card-top">
@@ -381,183 +341,160 @@
                     </div>
                     <div class="status-display">
                         <div class="status-code c-2xx" id="code-${m.id}">--</div>
-                        <div class="status-text" id="text-${m.id}">Iniciando</div>
+                        <div class="status-text" id="text-${m.id}">...</div>
                     </div>
                 </div>
-
-                <div class="chart-wrapper">
-                    <canvas id="chart-${m.id}"></canvas>
-                </div>
-
-                <small style="color:var(--text-muted); margin-bottom:4px;">Volumetria por Status:</small>
-                <div class="volumetry-list" id="vol-list-${m.id}">
-                    </div>
-
+                <div class="chart-wrapper"><canvas id="chart-${m.id}"></canvas></div>
+                <div class="volumetry-list" id="vol-list-${m.id}"></div>
                 <div class="stats-footer">
-                    <div class="stat-group">
-                        <b id="total-${m.id}">0</b>
-                        Chamadas Totais
-                    </div>
-                    <div class="stat-group">
-                        <b id="lat-${m.id}">0ms</b>
-                        Latência Atual
-                    </div>
+                    <div><b id="total-${m.id}">0</b> Calls</div>
+                    <div><b id="lat-${m.id}">0ms</b> Latência</div>
                 </div>
             `;
             grid.appendChild(el);
             initChart(m);
+            // Atualiza visual inicial se tiver histórico
+            if(m.history.length > 0) {
+                const last = m.history[m.history.length - 1];
+                updateCard(m, { code: last.code, latency: last.y });
+            }
         }
 
         function updateCard(m, result) {
-            // 1. Atualiza Status Principal (Cabeçalho)
             const codeEl = document.getElementById(`code-${m.id}`);
             const textEl = document.getElementById(`text-${m.id}`);
             
             codeEl.innerText = result.code;
-            codeEl.className = 'status-code ' + getColorClass(result.code);
+            codeEl.className = `status-code ${getColorClass(result.code)}`;
             textEl.innerText = getStatusText(result.code);
-
-            // 2. Atualiza Footer Stats
-            document.getElementById(`total-${m.id}`).innerText = m.totalCalls;
-            document.getElementById(`lat-${m.id}`).innerText = result.latency + 'ms';
             
-            // 3. ATUALIZA A LISTA DE VOLUMETRIA (A novidade)
-            updateVolumetryList(m);
+            document.getElementById(`total-${m.id}`).innerText = m.totalCalls || 0;
+            document.getElementById(`lat-${m.id}`).innerText = result.latency + 'ms';
 
-            // 4. Atualiza Gráfico
+            updateVolumetry(m);
             updateChart(m);
         }
 
-        function updateVolumetryList(m) {
-            const listContainer = document.getElementById(`vol-list-${m.id}`);
-            listContainer.innerHTML = ''; // Limpa para redesenhar
-
-            // Ordena as chaves (ex: 200, 201, 500...)
-            const codes = Object.keys(m.stats).sort();
-
-            codes.forEach(code => {
+        function updateVolumetry(m) {
+            const container = document.getElementById(`vol-list-${m.id}`);
+            container.innerHTML = '';
+            if(!m.stats) return;
+            
+            Object.keys(m.stats).sort().forEach(code => {
                 const count = m.stats[code];
-                const colorClass = getColorClass(parseInt(code)); // c-2xx
-                const borderClass = getBorderClass(parseInt(code)); // b-2xx
-
+                const c = parseInt(code);
                 const tag = document.createElement('div');
-                tag.className = `vol-tag ${borderClass}`;
-                
-                // Ex: [200] 15x
-                tag.innerHTML = `
-                    <span class="${colorClass}" style="font-weight:bold">${code}</span>
-                    <span>${count}x</span>
-                `;
-                listContainer.appendChild(tag);
+                tag.className = `vol-tag ${getBorderClass(c)}`;
+                tag.innerHTML = `<span class="${getColorClass(c)}" style="font-weight:bold">${code}</span><span>${count}x</span>`;
+                container.appendChild(tag);
             });
         }
 
-        // Helpers de Estilo
-        function getColorClass(code) {
-            if (code >= 200 && code < 300) return 'c-2xx';
-            if (code >= 400 && code < 500) return 'c-4xx';
-            if (code >= 500) return 'c-5xx';
-            return '';
-        }
-        function getBorderClass(code) {
-            if (code >= 200 && code < 300) return 'b-2xx';
-            if (code >= 400 && code < 500) return 'b-4xx';
-            if (code >= 500) return 'b-5xx';
-            return '';
-        }
-
-        function getStatusText(code) {
-            if (code === 200) return 'OK';
-            if (code === 201) return 'CREATED';
-            if (code === 422) return 'UNPROCESSABLE';
-            if (code === 429) return 'RATE LIMIT';
-            if (code === 500) return 'SERVER ERROR';
-            return 'UNK';
-        }
-
-        // --- CHART.JS ---
+        // --- CHART ---
         function initChart(m) {
             const ctx = document.getElementById(`chart-${m.id}`).getContext('2d');
-            
             chartInstances[m.id] = new Chart(ctx, {
                 type: 'line',
                 data: {
                     datasets: [{
-                        data: [],
-                        borderWidth: 2,
-                        fill: true,
-                        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-                        tension: 0.3,
-                        pointRadius: 2,
-                        segment: {
-                            borderColor: ctx => {
-                                const code = ctx.p0.raw.code; 
-                                if (code >= 500) return '#ff3864';
-                                if (code >= 400) return '#ffb800';
-                                return '#00ff9d';
-                            }
-                        }
+                        data: m.history || [],
+                        borderWidth: 2, fill: true, backgroundColor: 'rgba(255,255,255,0.02)', tension: 0.3, pointRadius: 0,
+                        segment: { borderColor: ctx => {
+                            const code = ctx.p0.raw.code;
+                            if (code >= 500) return '#ff3864';
+                            if (code >= 400) return '#ffb800';
+                            return '#00ff9d';
+                        }}
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
+                    responsive: true, maintainAspectRatio: false, animation: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        x: { type: 'linear', display: false, min: 0, max: 0 },
-                        y: { display: false, min: 0 }
-                    }
+                    scales: { x: { display: false }, y: { display: false } }
                 }
             });
         }
 
         function updateChart(m) {
             const chart = chartInstances[m.id];
-            if (!chart) return;
-
-            const now = Date.now();
-            const minTime = now - (globalTimeWindow * 60000);
-
-            chart.data.datasets[0].data = m.history.filter(d => d.x > minTime);
-            chart.options.scales.x.min = minTime;
-            chart.options.scales.x.max = now;
-            chart.update();
+            if(chart) {
+                chart.data.datasets[0].data = m.history;
+                chart.update();
+            }
         }
 
-        function setGlobalTimeWindow(min, btn) {
-            globalTimeWindow = min;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            monitors.forEach(m => updateChart(m));
-        }
-
-        // --- MODAL UTILS ---
-        function openModal() { document.getElementById('modal').classList.add('active'); }
-        function closeModal() { document.getElementById('modal').classList.remove('active'); }
-        
+        // --- ACTIONS ---
         function addApi() {
             const name = document.getElementById('inpName').value;
             const url = document.getElementById('inpUrl').value;
             const interval = document.getElementById('inpInterval').value;
-
-            if (name && url && interval) {
-                addMonitorData(name, url, interval);
-                closeModal();
+            
+            if(name && url) {
+                const newMonitor = {
+                    id: Date.now(), name, url, interval: parseFloat(interval),
+                    lastPingTime: 0, history: [], stats: {}, totalCalls: 0, lastAlertTime: 0
+                };
+                monitors.push(newMonitor);
+                saveMonitors();
+                renderCard(newMonitor);
+                closeModal('modalAdd');
+                // Limpa campos
                 document.getElementById('inpName').value = '';
                 document.getElementById('inpUrl').value = '';
-            } else {
-                alert('Preencha todos os campos');
             }
         }
 
         function removeMonitor(id) {
-            monitors = monitors.filter(m => m.id !== id);
-            if(chartInstances[id]) {
-                chartInstances[id].destroy();
-                delete chartInstances[id];
+            if(confirm('Tem certeza?')) {
+                monitors = monitors.filter(m => m.id !== id);
+                saveMonitors();
+                document.getElementById(`card-${id}`).remove();
+                if(chartInstances[id]) chartInstances[id].destroy();
             }
-            document.getElementById(`card-${id}`).remove();
+        }
+
+        function saveConfig() {
+            config.serviceId = document.getElementById('cfgService').value;
+            config.templateId = document.getElementById('cfgTemplate').value;
+            config.publicKey = document.getElementById('cfgKey').value;
+            config.destination = document.getElementById('cfgDest').value;
+            
+            localStorage.setItem('sentinel_config', JSON.stringify(config));
+            
+            if(config.publicKey) emailjs.init(config.publicKey);
+            checkConfigStatus();
+            closeModal('modalConfig');
+            showToast('Configurações salvas!', 'success');
+        }
+
+        function checkConfigStatus() {
+            const btn = document.getElementById('btnConfig');
+            if(config.serviceId && config.publicKey) btn.classList.add('configured');
+            else btn.classList.remove('configured');
+            
+            // Preenche campos se existirem
+            document.getElementById('cfgService').value = config.serviceId;
+            document.getElementById('cfgTemplate').value = config.templateId;
+            document.getElementById('cfgKey').value = config.publicKey;
+            document.getElementById('cfgDest').value = config.destination;
+        }
+
+        // --- HELPERS ---
+        function saveMonitors() { localStorage.setItem('sentinel_monitors', JSON.stringify(monitors)); }
+        function openAddModal() { document.getElementById('modalAdd').classList.add('active'); }
+        function openConfigModal() { document.getElementById('modalConfig').classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        
+        function getColorClass(c) { return c>=500?'c-5xx':(c>=400?'c-4xx':'c-2xx'); }
+        function getBorderClass(c) { return c>=500?'b-5xx':(c>=400?'b-4xx':'b-2xx'); }
+        function getStatusText(c) { return c===200?'OK':(c===500?'CRITICAL':'WARN'); }
+
+        function showToast(msg, type='success') {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.className = `toast ${type}`;
+            t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 4000);
         }
     </script>
 </body>

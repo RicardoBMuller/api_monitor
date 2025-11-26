@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | Dark Enterprise</title>
+    <title>Sentinel OpsCenter | Seconds Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -16,7 +16,7 @@
         :root {
             --bg-deep: #050508;
             --glass-panel: rgba(20, 20, 30, 0.6);
-            --glass-modal: rgba(15, 15, 20, 0.95);
+            --glass-modal: #0f1015; /* Fundo sólido escuro para evitar transparência excessiva */
             --glass-border: rgba(255, 255, 255, 0.08);
             
             --text-main: #ffffff;
@@ -27,7 +27,6 @@
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
             --neon-orange: #ff9100;
-            --neon-purple: #bc13fe;
 
             --font-main: 'Outfit', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
@@ -62,7 +61,6 @@
         .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
         .pulse { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
 
-        .toolbar { display: flex; gap: 12px; }
         .btn {
             border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
             cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
@@ -72,7 +70,7 @@
         .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* --- MAIN DASHBOARD (TILES) --- */
+        /* --- DASHBOARD TILES --- */
         .dashboard-grid {
             padding: 30px; overflow-y: auto; display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -80,12 +78,11 @@
             gap: 20px; align-content: start;
         }
 
-        /* Tile Style */
         .monitor-tile {
             background: var(--glass-panel);
             backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-left: 4px solid var(--glass-border); /* Status Border */
+            border-left: 4px solid var(--glass-border);
             border-radius: 12px;
             padding: 20px;
             cursor: pointer;
@@ -94,7 +91,6 @@
         }
         .monitor-tile:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.2); }
 
-        /* Status Variations */
         .tile-ok { border-left-color: var(--neon-green); }
         .tile-warn { border-left-color: var(--neon-orange); }
         .tile-crit { border-left-color: var(--neon-red); }
@@ -106,13 +102,12 @@
         .tile-body { display: flex; align-items: baseline; gap: 8px; }
         .tile-val { font-size: 2rem; font-weight: 700; color: #fff; font-family: var(--font-code); }
         .tile-unit { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-        
         .tile-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); margin-left: auto; }
 
-        /* --- DETAIL OVERLAY (THE "DYNATRACE" MODAL) --- */
+        /* --- DETAIL OVERLAY --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
             z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
@@ -120,7 +115,7 @@
 
         .detail-panel {
             width: 95%; max-width: 1300px; height: 90vh;
-            background: var(--glass-modal);
+            background: #0f1015; /* Fundo Sólido */
             border: 1px solid var(--glass-border); border-radius: 16px;
             box-shadow: 0 50px 100px rgba(0,0,0,0.9);
             display: flex; flex-direction: column;
@@ -128,7 +123,6 @@
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
-        /* Detail Header */
         .detail-head {
             padding: 25px 35px; border-bottom: 1px solid var(--glass-border);
             display: flex; justify-content: space-between; align-items: center;
@@ -136,25 +130,18 @@
         }
         .dh-info h2 { font-size: 1.6rem; font-weight: 600; color: #fff; margin-bottom: 5px; }
         .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
-        
         .dh-actions { display: flex; gap: 15px; }
 
-        /* Detail Body Grid */
         .detail-body {
             flex: 1; padding: 30px; overflow-y: auto;
-            display: grid;
-            grid-template-columns: 3fr 1fr; /* 75% Chart | 25% Sidebar */
-            grid-template-rows: auto 1fr;
-            gap: 30px;
+            display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 30px;
         }
 
-        /* KPIs */
         .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
         .kpi-card label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; letter-spacing: 1px; }
         .kpi-card .val { font-size: 2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
 
-        /* Charts */
         .main-chart-box {
             background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px;
             min-height: 350px; display: flex; flex-direction: column; position: relative;
@@ -164,7 +151,6 @@
         .sidebar-col { display: flex; flex-direction: column; gap: 25px; }
         .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 320px; }
         
-        /* Logs */
         .log-box {
             flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;
             font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column;
@@ -173,7 +159,7 @@
         .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
 
-        /* --- FORMS & MODALS --- */
+        /* --- FORMS (Fixed Styles) --- */
         .modal-form {
             background: #121218; width: 450px; padding: 35px; border-radius: 16px; 
             border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
@@ -189,8 +175,6 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
 
         .empty-placeholder { grid-column: 1/-1; text-align: center; margin-top: 100px; color: var(--text-muted); opacity: 0.5; }
-
-        /* Animations */
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(10, 255, 104, 0); } }
     </style>
 </head>
@@ -210,8 +194,8 @@
     <div class="dashboard-grid" id="tileGrid">
         <div class="empty-placeholder" id="emptyState">
             <div style="font-size: 3rem; margin-bottom: 10px;">📡</div>
-            <h3>Sem Telemetria Ativa</h3>
-            <p>Adicione um monitor para visualizar o status em tempo real.</p>
+            <h3>Nenhum serviço ativo</h3>
+            <p>Adicione um monitor para iniciar.</p>
         </div>
     </div>
 
@@ -230,22 +214,10 @@
 
             <div class="detail-body">
                 <div class="kpi-deck">
-                    <div class="kpi-card">
-                        <label>Status Saúde</label>
-                        <div class="val" id="kpiStatus" style="font-size: 1.4rem;">--</div>
-                    </div>
-                    <div class="kpi-card">
-                        <label>Latência Atual</label>
-                        <div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div>
-                    </div>
-                    <div class="kpi-card">
-                        <label>Total Chamadas</label>
-                        <div class="val" id="kpiTotal">0</div>
-                    </div>
-                    <div class="kpi-card">
-                        <label>Taxa de Erro (5m)</label>
-                        <div class="val" id="kpiErrorRate">0%</div>
-                    </div>
+                    <div class="kpi-card"><label>Status Saúde</label><div class="val" id="kpiStatus" style="font-size: 1.4rem;">--</div></div>
+                    <div class="kpi-card"><label>Latência Atual</label><div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div></div>
+                    <div class="kpi-card"><label>Total Chamadas</label><div class="val" id="kpiTotal">0</div></div>
+                    <div class="kpi-card"><label>Taxa de Erro</label><div class="val" id="kpiErrorRate">0%</div></div>
                 </div>
 
                 <div class="main-chart-box">
@@ -257,15 +229,14 @@
 
                 <div class="sidebar-col">
                     <div class="donut-box">
-                        <span class="section-label">VOLUMETRIA HTTP</span>
+                        <span class="section-label">HTTP CODES</span>
                         <div style="height: 240px; position: relative; display: flex; justify-content: center;">
                             <canvas id="donutChart"></canvas>
                         </div>
                     </div>
                     <div class="log-box">
                         <span class="section-label" style="border-color: #666;">LIVE LOGS</span>
-                        <div class="log-list" id="logList">
-                            </div>
+                        <div class="log-list" id="logList"></div>
                     </div>
                 </div>
             </div>
@@ -284,8 +255,8 @@
                 <input type="url" id="inpUrl" placeholder="https://api...">
             </div>
             <div class="form-group">
-                <label>Intervalo de Checagem (Minutos)</label>
-                <input type="number" id="inpInterval" value="0.5" step="any">
+                <label>Intervalo de Checagem (Segundos)</label>
+                <input type="number" id="inpInterval" value="30" min="1" step="1">
             </div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
@@ -296,7 +267,7 @@
 
     <div class="overlay-backdrop" id="modalConfig">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Alertas EmailJS</h2>
+            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Configurações</h2>
             <div class="form-group"><label>Service ID</label><input type="text" id="cfgService"></div>
             <div class="form-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
             <div class="form-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
@@ -310,11 +281,10 @@
 
     <script>
         // --- CORE DATA & STATE ---
-        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_v3_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_ops_v3_config')) || {};
+        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_v4_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_ops_v4_config')) || {};
         let activeMonitorId = null;
         
-        // Chart Instances
         let mainChartInst = null;
         let donutChartInst = null;
 
@@ -328,7 +298,8 @@
         function engineTick() {
             const now = Date.now();
             monitors.forEach(m => {
-                if (now - m.lastCheck >= (m.interval * 60000)) runCheck(m);
+                // Cálculo em milissegundos: intervalo (segundos) * 1000
+                if (now - m.lastCheck >= (m.interval * 1000)) runCheck(m);
             });
         }
 
@@ -336,32 +307,27 @@
             m.lastCheck = Date.now();
             const res = await simulateNetwork(m);
             
-            // Push History
             m.history.push({ x: m.lastCheck, y: res.latency, code: res.code });
             if(m.history.length > 100) m.history.shift();
             
-            // Update Stats
             if(!m.stats) m.stats = {};
             m.stats[res.code] = (m.stats[res.code] || 0) + 1;
             m.totalRequests = (m.totalRequests || 0) + 1;
             
-            // Current State
             m.lastCode = res.code;
             m.lastLatency = res.latency;
 
-            // Alert Logic
             if(res.code >= 400) m.errorsSeq = (m.errorsSeq || 0) + 1;
             else m.errorsSeq = 0;
             
             checkAlerts(m, res);
             saveData();
             
-            // UI Reactivity
             updateTile(m); 
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
-        // --- TILES (DASHBOARD) ---
+        // --- TILES ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             if(monitors.length === 0) {
@@ -418,7 +384,7 @@
             
             document.getElementById('detailName').innerText = m.name;
             document.getElementById('detailUrl').innerText = m.url;
-            document.getElementById('detailInterval').innerText = `Sync: ${m.interval} min`;
+            document.getElementById('detailInterval').innerText = `Sync: ${m.interval}s`;
 
             initDetailCharts(m);
             updateDetailView(m);
@@ -437,7 +403,6 @@
             if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; }
             else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
 
-            // KPIs
             const sEl = document.getElementById('kpiStatus'); sEl.innerText = text; sEl.style.color = color;
             document.getElementById('kpiLat').innerText = m.lastLatency || '--';
             document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
@@ -448,7 +413,6 @@
             const rEl = document.getElementById('kpiErrorRate');
             rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
 
-            // Logs
             const logList = document.getElementById('logList');
             logList.innerHTML = '';
             m.history.slice(-8).reverse().forEach(h => {
@@ -457,20 +421,15 @@
                 logList.innerHTML += `<div class="log-row"><span style="color:#666">${date}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
-            // Update Charts
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
                 mainChartInst.data.datasets[0].borderColor = color;
-                // Gradiente Dinâmico
+                
+                // Neon Gradient
                 const gradient = mainChartInst.ctx.createLinearGradient(0,0,0,300);
-                gradient.addColorStop(0, color.replace(')', ', 0.3)').replace('rgb', 'rgba').replace('#', 'rgba(')); // Simple hex fallback needed if using hex
-                // Manual Hex to RGBA for gradient
-                let r=0,g=0,b=0;
-                if(color=='#0aff68') {r=10;g=255;b=104;}
-                else if(color=='#ff0f4b') {r=255;g=15;b=75;}
-                else if(color=='#ff9100') {r=255;g=145;b=0;}
-                gradient.addColorStop(0, `rgba(${r},${g},${b},0.3)`);
-                gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                if(color==='#0aff68') { gradient.addColorStop(0,'rgba(10,255,104,0.3)'); gradient.addColorStop(1,'rgba(10,255,104,0)'); }
+                else if(color==='#ff0f4b') { gradient.addColorStop(0,'rgba(255,15,75,0.3)'); gradient.addColorStop(1,'rgba(255,15,75,0)'); }
+                else { gradient.addColorStop(0,'rgba(255,145,0,0.3)'); gradient.addColorStop(1,'rgba(255,145,0,0)'); }
                 
                 mainChartInst.data.datasets[0].backgroundColor = gradient;
                 mainChartInst.update('none');
@@ -479,12 +438,7 @@
                 const codes = Object.keys(m.stats);
                 donutChartInst.data.labels = codes;
                 donutChartInst.data.datasets[0].data = codes.map(c => m.stats[c]);
-                donutChartInst.data.datasets[0].backgroundColor = codes.map(c => {
-                    let ic = parseInt(c);
-                    if(ic >= 500) return '#ff0f4b';
-                    if(ic >= 400) return '#ff9100';
-                    return '#0aff68';
-                });
+                donutChartInst.data.datasets[0].backgroundColor = codes.map(c => parseInt(c)>=500?'#ff0f4b':(parseInt(c)>=400?'#ff9100':'#0aff68'));
                 donutChartInst.update('none');
             }
         }
@@ -493,7 +447,6 @@
             if(mainChartInst) mainChartInst.destroy();
             if(donutChartInst) donutChartInst.destroy();
 
-            // Globals
             Chart.defaults.color = '#8b9bb4';
             Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
@@ -512,17 +465,15 @@
             });
         }
 
-        // --- MANAGERS & FIXES ---
+        // --- MANAGERS ---
         function addMonitor() {
             const name = document.getElementById('inpName').value;
             const url = document.getElementById('inpUrl').value;
+            const intervalVal = document.getElementById('inpInterval').value;
             
-            // CORREÇÃO DO BOTÃO SALVAR: Trata vírgula e converte
-            let intervalVal = document.getElementById('inpInterval').value;
-            intervalVal = intervalVal.replace(',', '.'); // Troca virgula por ponto
-            const interval = parseFloat(intervalVal);
+            const interval = parseInt(intervalVal); // INTEIRO (SEGUNDOS)
 
-            if(name && url && !isNaN(interval) && interval > 0) {
+            if(name && url && interval && interval > 0) {
                 monitors.push({
                     id: Date.now(), name, url, interval: interval,
                     history: [], stats: {}, errorsSeq: 0
@@ -532,12 +483,12 @@
                 document.getElementById('inpName').value = '';
                 document.getElementById('inpUrl').value = '';
             } else {
-                alert("Por favor, preencha todos os campos corretamente (use ponto ou vírgula para decimais).");
+                alert("Por favor, preencha todos os campos.");
             }
         }
 
         function deleteCurrentMonitor() {
-            if(confirm("Deseja realmente excluir este monitor?")) {
+            if(confirm("Deseja excluir?")) {
                 monitors = monitors.filter(m => m.id !== activeMonitorId);
                 saveData(); closeDetail(); renderTiles();
             }
@@ -553,10 +504,9 @@
         }
 
         async function checkAlerts(m, res) {
-            // Regra: 5 erros seguidos e 15 min de intervalo
             if(m.errorsSeq >= 5 && (Date.now() - (m.lastAlert||0) > 15*60000) && config.serviceId) {
                 m.lastAlert = Date.now();
-                try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: "5 Falhas Consecutivas Detectadas", to_email: config.destination }); } catch(e){}
+                try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: "5 Falhas Consecutivas", to_email: config.destination }); } catch(e){}
             }
         }
 
@@ -565,11 +515,11 @@
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_ops_v3_config', JSON.stringify(config));
+            localStorage.setItem('sentinel_ops_v4_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
             closeModals();
         }
-        function saveData() { localStorage.setItem('sentinel_ops_v3_monitors', JSON.stringify(monitors)); }
+        function saveData() { localStorage.setItem('sentinel_ops_v4_monitors', JSON.stringify(monitors)); }
         
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') populateConfig(); }
         function populateConfig() {

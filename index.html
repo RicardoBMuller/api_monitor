@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | V12 Custom Rules</title>
+    <title>Sentinel OpsCenter | V13 Editable</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -76,19 +76,16 @@
         .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* TILES (ATUALIZADO COM INFO DE REGRAS) */
+        /* TILES */
         .dashboard-grid { flex: 1; padding: 30px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); grid-auto-rows: 180px; gap: 20px; align-content: start; }
         .monitor-tile { background: var(--glass-panel); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-left: 4px solid var(--glass-border); border-radius: 16px; padding: 22px; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; }
         .monitor-tile:hover { transform: translateY(-4px); box-shadow: 0 15px 40px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.2); }
         .tile-ok { border-left-color: var(--neon-green); } .tile-warn { border-left-color: var(--neon-orange); } .tile-crit { border-left-color: var(--neon-red); }
-        
         .tile-head { margin-bottom: 5px; }
         .tile-name { font-size: 1.1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
         .tile-url { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
         .tile-val-big { font-size: 2.2rem; font-weight: 700; color: #fff; font-family: var(--font-code); line-height: 1; }
         .tile-unit { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
-        
-        /* Footer do Tile com Regras */
         .tile-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
         .tile-badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 6px; font-weight: 700; text-transform: uppercase; background: rgba(0,0,0,0.3); border: 1px solid transparent; }
         .tile-rules { font-size: 0.65rem; color: var(--text-muted); font-family: var(--font-code); }
@@ -176,6 +173,7 @@
                     <div class="dh-url" id="detailUrl">https://api.example.com</div>
                 </div>
                 <div class="dh-actions">
+                    <button class="btn btn-glass" style="border-color:var(--neon-blue); color:var(--neon-blue);" onclick="openEditModal()">Editar Regras</button>
                     <button class="btn btn-glass" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="deleteCurrentMonitor()">Excluir</button>
                     <button class="btn btn-glass" onclick="closeDetail()">Fechar</button>
                 </div>
@@ -210,26 +208,15 @@
     <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
             <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Nova Monitoração</h2>
-            
             <div class="form-group"><label>Nome da API</label><input type="text" id="inpName" placeholder="Ex: Checkout API"></div>
             <div class="form-group"><label>URL Endpoint</label><input type="url" id="inpUrl" placeholder="https://..."></div>
-            <div class="form-group"><label>Intervalo de Checagem (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
+            <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
             
-            <div class="modal-divider"><span>Regras de Alerta (Específicas)</span></div>
-            
+            <div class="modal-divider"><span>Regras de Alerta</span></div>
             <div class="form-row">
-                <div class="form-group">
-                    <label>Erros Seguidos</label>
-                    <input type="number" id="inpRuleSeq" value="5" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Taxa Erro (%)</label>
-                    <input type="number" id="inpRuleRate" value="25" min="1" max="100">
-                </div>
-                <div class="form-group">
-                    <label>Janela (Min)</label>
-                    <input type="number" id="inpRuleWindow" value="5" min="1">
-                </div>
+                <div class="form-group"><label>Erros Seg.</label><input type="number" id="inpRuleSeq" value="5" min="1"></div>
+                <div class="form-group"><label>Taxa (%)</label><input type="number" id="inpRuleRate" value="25" min="1" max="100"></div>
+                <div class="form-group"><label>Janela (min)</label><input type="number" id="inpRuleWindow" value="5" min="1"></div>
             </div>
 
             <div class="modal-actions">
@@ -239,25 +226,39 @@
         </div>
     </div>
 
+    <div class="overlay-backdrop" id="modalEdit" onclick="handleBackdropClick(event, 'modalEdit')">
+        <div class="modal-form">
+            <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Editar Monitoração</h2>
+            <div class="form-group"><label>Nome da API</label><input type="text" id="editName"></div>
+            <div class="form-group"><label>URL Endpoint</label><input type="url" id="editUrl"></div>
+            <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="editInterval" min="1"></div>
+            
+            <div class="modal-divider"><span>Regras de Alerta</span></div>
+            <div class="form-row">
+                <div class="form-group"><label>Erros Seg.</label><input type="number" id="editRuleSeq" min="1"></div>
+                <div class="form-group"><label>Taxa (%)</label><input type="number" id="editRuleRate" min="1" max="100"></div>
+                <div class="form-group"><label>Janela (min)</label><input type="number" id="editRuleWindow" min="1"></div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
     <div class="overlay-backdrop" id="modalConfig" onclick="handleBackdropClick(event, 'modalConfig')">
         <div class="modal-form">
             <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Integrações</h2>
-            
-            <div class="form-group">
-                <label>Teams Webhook URL</label>
-                <input type="text" id="cfgWebhook" placeholder="https://...">
-            </div>
-
+            <div class="form-group"><label>Teams Webhook URL</label><input type="text" id="cfgWebhook"></div>
             <div class="modal-divider"><span>EmailJS (Opcional)</span></div>
-            
             <div class="form-group"><label>Service ID</label><input type="text" id="cfgService"></div>
             <div class="form-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
             <div class="form-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
             <div class="form-group"><label>Email Destino</label><input type="email" id="cfgDest"></div>
-            
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
-                <button class="btn btn-primary" onclick="saveConfig()">Salvar Alterações</button>
+                <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
             </div>
         </div>
     </div>
@@ -313,34 +314,27 @@
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
-        // --- ALERTS LOGIC (PER MONITOR) ---
+        // --- ALERTS LOGIC ---
         function checkAlerts(m) {
             const now = Date.now();
-            if (now - (m.lastAlert || 0) < 5 * 60000) return; // Global cooldown to avoid spam
+            if (now - (m.lastAlert || 0) < 5 * 60000) return;
 
-            // USANDO REGRAS DO PRÓPRIO MONITOR (Default fallback se nao existir)
-            const rules = m.rules || { seq: 5, rate: 25, window: 5 };
-            const limitSeq = rules.seq;
-            const limitRate = rules.rate / 100;
-            const timeWindow = rules.window * 60000;
+            const r = m.rules || { seq: 5, rate: 25, window: 5 };
+            const limitSeq = r.seq;
+            const limitRate = r.rate / 100;
+            const timeWindow = r.window * 60000;
 
             let alertReason = null;
 
-            // Rule 1: Consecutive
-            if (m.errorsSeq >= limitSeq) {
-                alertReason = `Falha Contínua (${m.errorsSeq} erros seguidos > Limite: ${limitSeq})`;
-            }
+            if (m.errorsSeq >= limitSeq) alertReason = `Falha Contínua (${m.errorsSeq} erros)`;
 
-            // Rule 2: Rate
             if (!alertReason) {
                 const windowStart = now - timeWindow;
                 const recentPoints = m.history.filter(h => h.x > windowStart);
                 if (recentPoints.length >= 5) {
                     const errors = recentPoints.filter(h => h.code >= 400).length;
                     const currentRate = errors / recentPoints.length;
-                    if (currentRate > limitRate) {
-                        alertReason = `Alta Taxa de Erro (${(currentRate*100).toFixed(0)}% > Limite: ${rules.rate}%)`;
-                    }
+                    if (currentRate > limitRate) alertReason = `Alta Taxa de Erro (>${(limitRate*100).toFixed(0)}%)`;
                 }
             }
 
@@ -351,14 +345,12 @@
             m.lastAlert = Date.now();
             const timeStr = new Date().toLocaleTimeString();
             
-            // 1. Feed
             const alertObj = { time: timeStr, api: m.name, msg: reason };
             alertHistory.unshift(alertObj);
             if(alertHistory.length > 50) alertHistory.pop();
             localStorage.setItem('sentinel_v12_alerts', JSON.stringify(alertHistory));
             renderAlertFeed();
 
-            // 2. Teams Webhook
             if (config.webhook) {
                 const payload = {
                     "type": "message",
@@ -369,22 +361,15 @@
                             "body": [
                                 { "type": "TextBlock", "size": "Medium", "weight": "Bolder", "text": "🚨 ALERTA SENTINEL", "color": "Attention" },
                                 { "type": "FactSet", "facts": [
-                                    { "title": "Serviço", "value": m.name },
-                                    { "title": "Erro", "value": reason },
-                                    { "title": "Status", "value": m.lastCode.toString() },
-                                    { "title": "URL", "value": m.url }
+                                    { "title": "Serviço", "value": m.name }, { "title": "Erro", "value": reason },
+                                    { "title": "Status", "value": m.lastCode.toString() }, { "title": "URL", "value": m.url }
                                 ]}
                             ],
-                            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                            "version": "1.4"
+                            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json", "version": "1.4"
                         }
                     }]
                 };
-                try {
-                    await fetch("https://corsproxy.io/?" + encodeURIComponent(config.webhook), {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                    });
-                } catch(e) { console.error("Teams Error:", e); }
+                try { await fetch("https://corsproxy.io/?" + encodeURIComponent(config.webhook), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }); } catch(e) {}
             }
         }
 
@@ -397,7 +382,7 @@
             });
         }
 
-        // --- VISUALIZATION ---
+        // --- UI & CHARTS ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             const empty = document.getElementById('emptyState');
@@ -418,25 +403,13 @@
             else if(m.lastCode >= 400) { sClass = 'tile-warn'; sText = 'WARNING'; sColor = 'var(--neon-orange)'; sBorder = 'var(--neon-orange)'; }
             else if(!m.lastCode) { sText = 'WAITING'; sColor = '#666'; sBorder = '#666'; }
 
-            // Recupera regras (com fallback)
             const r = m.rules || { seq: 5, rate: 25, window: 5 };
 
             el.className = `monitor-tile ${sClass}`;
             el.innerHTML = `
-                <div>
-                    <div class="tile-head">
-                        <div class="tile-name">${m.name}</div>
-                        <div class="tile-url">${m.url}</div>
-                    </div>
-                    <div class="tile-body">
-                        <span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span>
-                        <span class="tile-unit">ms</span>
-                    </div>
-                </div>
-                <div class="tile-footer">
-                    <span class="tile-rules">Regra: >${r.seq} err | >${r.rate}% (${r.window}m)</span>
-                    <div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div>
-                </div>
+                <div><div class="tile-head"><div class="tile-name">${m.name}</div><div class="tile-url">${m.url}</div></div>
+                <div class="tile-body"><span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span><span class="tile-unit">ms</span></div></div>
+                <div class="tile-footer"><span class="tile-rules">Regra: >${r.seq} err | >${r.rate}% (${r.window}m)</span><div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div></div>
             `;
         }
 
@@ -461,21 +434,15 @@
             document.getElementById('kpiStatus').innerText = text; document.getElementById('kpiStatus').style.color = color;
             document.getElementById('kpiLat').innerText = m.lastLatency || '--'; document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
             
-            // Calcular Taxa Real Baseada na Janela Customizada
             const r = m.rules || { seq: 5, rate: 25, window: 5 };
             const windowStart = Date.now() - (r.window * 60000);
             const recent = m.history.filter(h => h.x > windowStart);
-            
             let rateVal = 0;
             if(recent.length > 0) {
                 const errs = recent.filter(x => x.code >= 400).length;
                 rateVal = ((errs / recent.length) * 100).toFixed(1);
             }
-            
-            const rEl = document.getElementById('kpiErrorRate'); 
-            rEl.innerText = `${rateVal}%`; 
-            rEl.style.color = rateVal > r.rate ? '#ff9100' : '#fff';
-            // Atualiza label da KPI para refletir janela
+            const rEl = document.getElementById('kpiErrorRate'); rEl.innerText = `${rateVal}%`; rEl.style.color = rateVal > r.rate ? '#ff9100' : '#fff';
             rEl.parentElement.querySelector('label').innerText = `Taxa Erro (${r.window}m)`;
 
             const logList = document.getElementById('logList'); logList.innerHTML = '';
@@ -522,11 +489,10 @@
             donutChartInst = new Chart(ctxDonut, { type: 'pie', data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } } } });
         }
 
+        // --- CONFIG & MANAGERS ---
         function addMonitorSafe() {
             try {
                 const name = document.getElementById('inpName').value; const url = document.getElementById('inpUrl').value; let interval = parseInt(document.getElementById('inpInterval').value);
-                
-                // Capture Rules
                 const rSeq = parseInt(document.getElementById('inpRuleSeq').value) || 5;
                 const rRate = parseInt(document.getElementById('inpRuleRate').value) || 25;
                 const rWindow = parseInt(document.getElementById('inpRuleWindow').value) || 5;
@@ -542,6 +508,49 @@
                 document.getElementById('inpName').value=''; document.getElementById('inpUrl').value=''; document.getElementById('inpInterval').value='10';
                 runCheck(newM);
             } catch (e) { alert("Erro: " + e.message); }
+        }
+
+        // --- EDIT FUNCTIONS (NEW) ---
+        function openEditModal() {
+            const m = monitors.find(x => x.id === activeMonitorId);
+            if(!m) return;
+            
+            document.getElementById('editName').value = m.name;
+            document.getElementById('editUrl').value = m.url;
+            document.getElementById('editInterval').value = m.interval;
+            
+            const r = m.rules || { seq: 5, rate: 25, window: 5 };
+            document.getElementById('editRuleSeq').value = r.seq;
+            document.getElementById('editRuleRate').value = r.rate;
+            document.getElementById('editRuleWindow').value = r.window;
+            
+            document.getElementById('modalEdit').classList.add('active');
+        }
+
+        function saveEdit() {
+            const mIndex = monitors.findIndex(x => x.id === activeMonitorId);
+            if(mIndex === -1) return;
+
+            const m = monitors[mIndex];
+            m.name = document.getElementById('editName').value;
+            m.url = document.getElementById('editUrl').value;
+            m.interval = parseInt(document.getElementById('editInterval').value) || 10;
+            
+            m.rules = {
+                seq: parseInt(document.getElementById('editRuleSeq').value) || 5,
+                rate: parseInt(document.getElementById('editRuleRate').value) || 25,
+                window: parseInt(document.getElementById('editRuleWindow').value) || 5
+            };
+
+            saveData();
+            renderTiles(); // Atualiza tile na home
+            
+            // Atualiza infos do modal aberto
+            document.getElementById('detailName').innerText = m.name;
+            document.getElementById('detailUrl').innerText = m.url;
+            updateDetailView(m); 
+            
+            closeModals();
         }
         
         function deleteCurrentMonitor() { if(confirm("Excluir?")) { monitors = monitors.filter(m => m.id !== activeMonitorId); saveData(); closeDetail(); renderTiles(); } }
@@ -567,7 +576,11 @@
                 document.getElementById('cfgDest').value = config.destination||'';
             }
         }
-        function closeModals() { document.getElementById('modalAdd').classList.remove('active'); document.getElementById('modalConfig').classList.remove('active'); }
+        function closeModals() { 
+            document.getElementById('modalAdd').classList.remove('active'); 
+            document.getElementById('modalConfig').classList.remove('active'); 
+            document.getElementById('modalEdit').classList.remove('active'); 
+        }
     </script>
 </body>
 </html>

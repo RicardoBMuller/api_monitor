@@ -3,20 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel MVNO NuCel | APIs Alerts</title>
+    <title>Sentinel OpsCenter | V7.0 Final</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
         /* --- TEMA --- */
         :root {
             --bg-deep: #050508;
-            --bg-sidebar: #0a0b10;
             --glass-panel: rgba(20, 20, 30, 0.6);
             --glass-modal: #0f1015;
             --glass-border: rgba(255, 255, 255, 0.08);
@@ -24,6 +22,7 @@
             --text-main: #ffffff;
             --text-muted: #8b9bb4;
 
+            /* Cores Neon */
             --neon-blue: #00f3ff;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
@@ -37,16 +36,27 @@
 
         body {
             background-color: var(--bg-deep);
+            /* FUNDO EM MOVIMENTO */
+            background: linear-gradient(-45deg, #050508, #161625, #0a0514, #020205);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
             color: var(--text-main);
             height: 100vh;
-            overflow: hidden;
             display: flex;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* --- SIDEBAR --- */
         aside.sidebar {
             width: 320px;
-            background: var(--bg-sidebar);
+            background: rgba(10, 11, 16, 0.8);
+            backdrop-filter: blur(10px);
             border-right: 1px solid var(--glass-border);
             display: flex; flex-direction: column; flex-shrink: 0; z-index: 20;
         }
@@ -69,14 +79,12 @@
 
         /* --- CONTEÚDO PRINCIPAL --- */
         main.content-area {
-            flex: 1; display: flex; flex-direction: column;
-            background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.05), transparent 50%);
-            position: relative;
+            flex: 1; display: flex; flex-direction: column; position: relative;
         }
         header {
             height: 65px; display: flex; justify-content: space-between; align-items: center;
             padding: 0 30px; border-bottom: 1px solid var(--glass-border);
-            background: rgba(5, 5, 8, 0.6); backdrop-filter: blur(10px);
+            background: rgba(5, 5, 8, 0.4); backdrop-filter: blur(10px);
         }
         .brand { font-size: 1.4rem; letter-spacing: 1px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
         .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
@@ -88,7 +96,7 @@
         .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* --- DASHBOARD TILES --- */
+        /* --- TILES --- */
         .dashboard-grid {
             flex: 1; padding: 30px; overflow-y: auto; display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); grid-auto-rows: 160px;
@@ -110,7 +118,7 @@
         .tile-footer { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto; }
         .tile-badge { font-size: 0.7rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.05); border: 1px solid transparent; }
 
-        /* --- DETAIL OVERLAY --- */
+        /* --- DETAIL MODAL --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -133,17 +141,32 @@
         .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
         .dh-actions { display: flex; gap: 15px; }
         .detail-body { flex: 1; padding: 30px; overflow-y: auto; display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 30px; }
+        
+        /* KPIs */
         .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
         .kpi-card label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; }
         .kpi-card .val { font-size: 2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
+
+        /* Charts */
         .main-chart-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; min-height: 350px; display: flex; flex-direction: column; position: relative; }
         .chart-fill { position: relative; width: 100%; flex: 1; min-height: 0; }
+        
         .sidebar-col { display: flex; flex-direction: column; gap: 25px; }
         .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 320px; position: relative; display: flex; justify-content: center;}
+        
+        /* Live Logs */
         .log-box { flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column; }
         .log-list { overflow-y: auto; flex: 1; padding-right: 5px; }
-        .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        
+        /* Animação dos logs em tempo real */
+        .log-row { 
+            display: flex; justify-content: space-between; padding: 8px 0; 
+            border-bottom: 1px dashed rgba(255,255,255,0.05);
+            animation: fadeInLog 0.3s ease-out; /* Efeito de entrada */
+        }
+        @keyframes fadeInLog { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
         .section-label { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; }
 
@@ -165,7 +188,7 @@
     <aside class="sidebar">
         <div class="sidebar-header">Histórico de Alertas</div>
         <div class="alert-feed" id="alertFeed">
-            <div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta registrado</div>
+            <div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta recente</div>
         </div>
     </aside>
 
@@ -173,11 +196,11 @@
         <header>
             <div class="brand">
                 <div class="pulse"></div>
-                Sentinel <b>MVNO NuCel</b>
+                Sentinel <b>OpsCenter</b>
             </div>
             <div class="toolbar">
                 <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Config</button>
-                <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Nova Monitoração</button>
+                <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
             </div>
         </header>
 
@@ -212,13 +235,13 @@
                 </div>
 
                 <div class="main-chart-box">
-                    <span class="section-label">LINHA DO TEMPO REAL (LATÊNCIA vs STATUS)</span>
+                    <span class="section-label">LINHA DO TEMPO (LIVE)</span>
                     <div class="chart-fill"><canvas id="mainChart"></canvas></div>
                 </div>
 
                 <div class="sidebar-col">
                     <div class="donut-box">
-                        <span class="section-label">HTTP CODES</span>
+                        <span class="section-label">HTTP CODES (PIE)</span>
                         <div style="height: 240px; width: 100%; display: flex; justify-content: center;"><canvas id="donutChart"></canvas></div>
                     </div>
                     <div class="log-box">
@@ -232,8 +255,8 @@
 
     <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Nova Monitoração</h2>
-            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: ECMS Contracts"></div>
+            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Novo Monitor</h2>
+            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Checkout API"></div>
             <div class="form-group"><label>URL Endpoint</label><input type="url" id="inpUrl" placeholder="https://api..."></div>
             <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
             <div class="modal-actions">
@@ -259,9 +282,9 @@
 
     <script>
         // --- STATE ---
-        let monitors = JSON.parse(localStorage.getItem('sentinel_v6_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_v6_config')) || {};
-        let alertHistory = JSON.parse(localStorage.getItem('sentinel_v6_alerts')) || [];
+        let monitors = JSON.parse(localStorage.getItem('sentinel_v7_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_v7_config')) || {};
+        let alertHistory = JSON.parse(localStorage.getItem('sentinel_v7_alerts')) || [];
         let activeMonitorId = null;
         let mainChartInst = null;
         let donutChartInst = null;
@@ -278,6 +301,7 @@
         function engineTick() {
             const now = Date.now();
             monitors.forEach(m => {
+                // Check interval in seconds
                 if (now - (m.lastCheck || 0) >= (m.interval * 1000)) runCheck(m);
             });
         }
@@ -287,8 +311,7 @@
             const res = await simulateNetwork(m);
             
             m.history.push({ x: m.lastCheck, y: res.latency, code: res.code });
-            // Aumentei o histórico para permitir uma janela de tempo maior no gráfico
-            if(m.history.length > 300) m.history.shift(); 
+            if(m.history.length > 300) m.history.shift();
             
             if(!m.stats) m.stats = {};
             m.stats[res.code] = (m.stats[res.code] || 0) + 1;
@@ -302,16 +325,17 @@
             checkAlerts(m);
             saveData();
             updateTile(m);
+            // REAL-TIME UPDATE IF MODAL IS OPEN
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
-        // --- ALERTS ---
+        // --- ALERTS LOGIC ---
         function checkAlerts(m) {
             const now = Date.now();
-            if (now - (m.lastAlert || 0) < 5 * 60000) return;
+            if (now - (m.lastAlert || 0) < 5 * 60000) return; // Cooldown 5min
 
             let alertReason = null;
-            if (m.errorsSeq >= 5) alertReason = `Falha Contínua Detectada (5x)`;
+            if (m.errorsSeq >= 5) alertReason = `Falha Contínua (5x)`;
 
             if (!alertReason) {
                 const fiveMinAgo = now - (5 * 60000);
@@ -331,7 +355,7 @@
             const alertObj = { time: new Date().toLocaleTimeString(), api: m.name, msg: reason };
             alertHistory.unshift(alertObj);
             if(alertHistory.length > 50) alertHistory.pop();
-            localStorage.setItem('sentinel_v6_alerts', JSON.stringify(alertHistory));
+            localStorage.setItem('sentinel_v7_alerts', JSON.stringify(alertHistory));
             renderAlertFeed();
             if (config.serviceId) {
                 try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: reason, to_email: config.destination }); } catch(e) { console.error(e); }
@@ -340,18 +364,18 @@
 
         function renderAlertFeed() {
             const feed = document.getElementById('alertFeed');
-            if (alertHistory.length === 0) { feed.innerHTML = '<div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta registrado</div>'; return; }
+            if (alertHistory.length === 0) { feed.innerHTML = '<div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta recente</div>'; return; }
             feed.innerHTML = '';
             alertHistory.forEach(a => {
                 feed.innerHTML += `<div class="alert-item crit"><div class="alert-time">${a.time}</div><div class="alert-title">${a.api}</div><div class="alert-msg">${a.msg}</div></div>`;
             });
         }
 
-        // --- TILES ---
+        // --- TILES (CORRIGIDO) ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             const empty = document.getElementById('emptyState');
-            if(monitors.length === 0) { empty.style.display = 'block'; grid.innerHTML = ''; return; }
+            if(monitors.length === 0) { empty.style.display = 'flex'; grid.innerHTML = ''; return; }
             empty.style.display = 'none';
             monitors.forEach(m => {
                 let el = document.getElementById(`tile-${m.id}`);
@@ -360,16 +384,37 @@
             });
         }
 
+        function updateTile(m) {
+            const el = document.getElementById(`tile-${m.id}`);
+            if(el) updateTileElement(el, m);
+        }
+
         function updateTileElement(el, m) {
             let sClass = 'tile-ok', sText = 'ONLINE', sColor = 'var(--neon-green)', sBorder = 'var(--neon-green)';
             if(m.lastCode >= 500) { sClass = 'tile-crit'; sText = 'CRITICAL'; sColor = 'var(--neon-red)'; sBorder = 'var(--neon-red)'; }
             else if(m.lastCode >= 400) { sClass = 'tile-warn'; sText = 'WARNING'; sColor = 'var(--neon-orange)'; sBorder = 'var(--neon-orange)'; }
             else if(!m.lastCode) { sText = 'WAITING'; sColor = '#666'; sBorder = '#666'; }
+
             el.className = `monitor-tile ${sClass}`;
-            el.innerHTML = `<div><div class="tile-head"><div class="tile-name">${m.name}</div><div class="tile-url">${m.url}</div></div><div class="tile-body"><span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span><span class="tile-unit">ms</span></div></div><div class="tile-footer"><div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div></div>`;
+            // Layout reestruturado para fixar badge no canto
+            el.innerHTML = `
+                <div>
+                    <div class="tile-head">
+                        <div class="tile-name">${m.name}</div>
+                        <div class="tile-url">${m.url}</div>
+                    </div>
+                    <div class="tile-body">
+                        <span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span>
+                        <span class="tile-unit">ms</span>
+                    </div>
+                </div>
+                <div class="tile-footer">
+                    <div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div>
+                </div>
+            `;
         }
 
-        // --- DETAIL VIEW (TIMELINE CHART) ---
+        // --- DETAIL VIEW (LIVE UPDATE) ---
         function handleBackdropClick(e, id) { if(e.target.id === id) { if(id === 'detailOverlay') closeDetail(); else closeModals(); } }
         function openDetail(id) {
             activeMonitorId = id;
@@ -386,27 +431,28 @@
         function closeDetail() { document.getElementById('detailOverlay').classList.remove('active'); activeMonitorId = null; if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy(); }
 
         function updateDetailView(m) {
-            // KPIs e Logs (mantidos iguais)
+            // KPIs
             const code = m.lastCode || 0; let color = '#0aff68', text = 'SAUDÁVEL';
             if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; } else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
             document.getElementById('kpiStatus').innerText = text; document.getElementById('kpiStatus').style.color = color;
             document.getElementById('kpiLat').innerText = m.lastLatency || '--'; document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
+            
+            // Error Rate Logic
             const recent = m.history.slice(-50); const errs = recent.filter(x => x.code >= 400).length;
             const rate = recent.length ? ((errs / recent.length) * 100).toFixed(1) : 0;
             const rEl = document.getElementById('kpiErrorRate'); rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
-            const logList = document.getElementById('logList'); logList.innerHTML = '';
+
+            // Live Logs (Invertido e com animação CSS)
+            const logList = document.getElementById('logList');
+            logList.innerHTML = '';
             m.history.slice(-8).reverse().forEach(h => {
                 let cClass = h.code >= 500 ? 'c-err' : (h.code >= 400 ? 'c-warn' : 'c-ok');
                 logList.innerHTML += `<div class="log-row"><span style="color:#666">${new Date(h.x).toLocaleTimeString()}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
-            // --- ATUALIZAÇÃO DO GRÁFICO DE TIMELINE EM TEMPO REAL ---
+            // Charts Updates
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
-                // Define a janela de tempo móvel (últimos 3 minutos)
-                const now = Date.now();
-                mainChartInst.options.scales.x.min = now - (3 * 60 * 1000);
-                mainChartInst.options.scales.x.max = now;
                 mainChartInst.update('none');
             }
             if(donutChartInst) {
@@ -421,14 +467,13 @@
             if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy();
             Chart.defaults.color = '#8b9bb4'; Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
-            // --- CONFIGURAÇÃO DO GRÁFICO DE TIMELINE ---
+            // Main Chart
             const ctxMain = document.getElementById('mainChart').getContext('2d');
             mainChartInst = new Chart(ctxMain, {
                 type: 'line',
                 data: {
                     datasets: [{
-                        data: m.history, borderWidth: 2, fill: true, pointRadius: 3, pointHoverRadius: 5, tension: 0.2,
-                        // Segment Styling: Muda a cor da linha e do preenchimento baseado no status do ponto
+                        data: m.history, borderWidth: 2, fill: true, pointRadius: 3, tension: 0.2,
                         segment: {
                             borderColor: ctx => { const code = ctx.p1.raw.code; if(code>=500) return '#ff0f4b'; if(code>=400) return '#ff9100'; return '#0aff68'; },
                             backgroundColor: ctx => {
@@ -436,22 +481,27 @@
                                 let r=0,g=0,b=0; if(c=='#0aff68'){r=10;g=255;b=104;} else if(c=='#ff0f4b'){r=255;g=15;b=75;} else {r=255;g=145;b=0;}
                                 return `rgba(${r},${g},${b},0.2)`;
                             }
-                        },
-                        pointBackgroundColor: ctx => { const code = ctx.raw.code; if(code>=500) return '#ff0f4b'; if(code>=400) return '#ff9100'; return '#0aff68'; }
+                        }
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false, animation: false,
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `Latência: ${c.parsed.y}ms (Status: ${c.raw.code})` } } },
-                    scales: {
-                        // Eixo X como Tempo
-                        x: { type: 'time', time: { unit: 'minute', displayFormats: { minute: 'HH:mm:ss' }, tooltipFormat: 'HH:mm:ss' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b9bb4', maxRotation: 0, autoSkip: true } },
-                        y: { title: { display: true, text: 'Latência (ms)', color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } }
                 }
             });
+
+            // Donut -> Changed to PIE (Solid)
             const ctxDonut = document.getElementById('donutChart').getContext('2d');
-            donutChartInst = new Chart(ctxDonut, { type: 'doughnut', data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } }, cutout: '70%' } });
+            donutChartInst = new Chart(ctxDonut, {
+                type: 'pie', // ALTERADO PARA PIZZA
+                data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, animation: false, 
+                    plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } }
+                    // Removed cutout
+                }
+            });
         }
 
         // --- MANAGERS ---
@@ -461,14 +511,14 @@
                 if(!name || !url) { alert("Preencha nome e URL."); return; } if(!interval || interval <= 0) interval = 10; 
                 const newM = { id: Date.now(), name, url, interval, history: [], stats: {}, errorsSeq: 0 };
                 monitors.push(newM); saveData(); renderTiles(); closeModals();
-                document.getElementById('inpName').value='';document.getElementById('inpUrl').value='';document.getElementById('inpInterval').value='10';
-                runCheck(newM);
+                document.getElementById('inpName').value=''; document.getElementById('inpUrl').value=''; document.getElementById('inpInterval').value='10';
+                runCheck(newM); // PING IMEDIATO
             } catch (e) { alert("Erro: " + e.message); }
         }
         function deleteCurrentMonitor() { if(confirm("Excluir?")) { monitors = monitors.filter(m => m.id !== activeMonitorId); saveData(); closeDetail(); renderTiles(); } }
         function simulateNetwork(m) { return new Promise(resolve => { const r = Math.random(); let code = 200, lat = Math.floor(Math.random() * 60) + 20; if(r > 0.85) { code = 500; lat += 250; } else if(r > 0.80) code = 429; setTimeout(() => resolve({ code, latency: lat }), 200); }); }
-        function saveConfig() { config.serviceId = document.getElementById('cfgService').value; config.templateId = document.getElementById('cfgTemplate').value; config.publicKey = document.getElementById('cfgKey').value; config.destination = document.getElementById('cfgDest').value; localStorage.setItem('sentinel_v6_config', JSON.stringify(config)); if(config.publicKey) emailjs.init(config.publicKey); closeModals(); }
-        function saveData() { localStorage.setItem('sentinel_v6_monitors', JSON.stringify(monitors)); }
+        function saveConfig() { config.serviceId = document.getElementById('cfgService').value; config.templateId = document.getElementById('cfgTemplate').value; config.publicKey = document.getElementById('cfgKey').value; config.destination = document.getElementById('cfgDest').value; localStorage.setItem('sentinel_v7_config', JSON.stringify(config)); if(config.publicKey) emailjs.init(config.publicKey); closeModals(); }
+        function saveData() { localStorage.setItem('sentinel_v7_monitors', JSON.stringify(monitors)); }
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') { document.getElementById('cfgService').value = config.serviceId||''; document.getElementById('cfgTemplate').value = config.templateId||''; document.getElementById('cfgKey').value = config.publicKey||''; document.getElementById('cfgDest').value = config.destination||''; } }
         function closeModals() { document.getElementById('modalAdd').classList.remove('active'); document.getElementById('modalConfig').classList.remove('active'); }
     </script>

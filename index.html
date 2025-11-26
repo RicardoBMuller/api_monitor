@@ -370,14 +370,14 @@
             if (now - (m.lastAlert || 0) < 5 * 60000) return;
 
             let alertReason = null;
-            if (m.errorsSeq >= 5) alertReason = `Falha Contínua (5x)`;
+            if (m.errorsSeq >= 10) alertReason = `Falha Contínua (10x)`;
 
             if (!alertReason) {
                 const fiveMinAgo = now - (5 * 60000);
                 const recentPoints = m.history.filter(h => h.x > fiveMinAgo);
                 if (recentPoints.length >= 5) {
                     const errors = recentPoints.filter(h => h.code >= 400).length;
-                    if ((errors / recentPoints.length) > 0.25) alertReason = `Alta Taxa de Erro (>25%)`;
+                    if ((errors / recentPoints.length) > 0.50) alertReason = `Alta Taxa de Erro (>50%)`;
                 }
             }
 

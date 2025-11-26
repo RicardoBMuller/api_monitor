@@ -3,402 +3,534 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel AI | Dark Enterprise</title>
+    <title>Sentinel OpsCenter | Dynatrace Style</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- THEME CONFIG (DARK NEON) --- */
+        /* --- THEME VARS --- */
         :root {
-            --bg-deep: #050508;
-            --glass-panel: rgba(20, 20, 30, 0.7); /* Painel escuro translúcido */
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 255, 255, 0.03);
+            --bg-body: #0b0c10;
+            --bg-card: #14161f;
+            --bg-glass: rgba(20, 22, 31, 0.85);
+            --border-subtle: rgba(255, 255, 255, 0.08);
             
-            --text-main: #ffffff;
-            --text-muted: #8b9bb4;
-
-            /* Palette Neon */
-            --neon-blue: #00f3ff;
-            --neon-green: #0aff68;
-            --neon-red: #ff0f4b;
-            --neon-orange: #ff9100;
-            --neon-purple: #bc13fe;
-
-            --font-main: 'Outfit', sans-serif;
+            --text-main: #e0e6ed;
+            --text-muted: #6b7280;
+            
+            --brand-primary: #00a8cc; 
+            --status-ok: #10b981;
+            --status-warn: #f59e0b;
+            --status-crit: #ef4444;
+            
+            --font-ui: 'Inter', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-deep);
-            /* Fundo sutil */
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(188, 19, 254, 0.05), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.05), transparent 25%);
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at top center, #1b202e 0%, #0b0c10 60%);
             color: var(--text-main);
+            font-family: var(--font-ui);
             height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
-        /* --- HEADER --- */
+        /* --- TOP BAR --- */
         header {
             height: 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 25px;
-            border-bottom: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            flex-shrink: 0;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px;
+            background: rgba(11, 12, 16, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 10;
         }
 
-        h1 { font-weight: 300; font-size: 1.4rem; letter-spacing: 1px; }
-        h1 b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+        .brand { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .brand span { color: var(--brand-primary); }
+        .live-indicator { width: 8px; height: 8px; background: var(--status-ok); border-radius: 50%; box-shadow: 0 0 8px var(--status-ok); animation: pulse 2s infinite; }
 
-        .toolbar { display: flex; gap: 10px; }
-
-        .btn {
-            border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        .btn-ghost {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
+            color: var(--text-main); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
         }
-        
-        .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
-        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
-        
-        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
-        .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 243, 255, 0.4); }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
+        .btn-primary { background: var(--brand-primary); color: #fff; border: none; font-weight: 500; }
+        .btn-primary:hover { opacity: 0.9; }
 
-        /* --- LAYOUT GRID --- */
+        /* --- MAIN DASHBOARD (TILES) --- */
         .dashboard-grid {
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
-            flex: 1;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(650px, 1fr)); /* Cards largos estilo dashboard */
-            grid-auto-rows: min-content;
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
             align-content: start;
         }
 
-        /* Scrollbar */
-        .dashboard-grid::-webkit-scrollbar { width: 6px; }
-        .dashboard-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
-
-        /* --- ANALYTICS PANEL (CARD) --- */
-        .panel {
-            background: var(--glass-panel);
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            display: flex; flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transition: transform 0.3s, border-color 0.3s;
-            min-height: 420px;
-            animation: fadeIn 0.5s ease-out;
+        /* CARD ESTILO KANBAN / TILE */
+        .monitor-tile {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-left: 4px solid var(--border-subtle); /* Status Indicator */
+            border-radius: 8px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
-        .panel:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
+        .monitor-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.15); }
 
-        /* Panel Header */
-        .panel-head {
-            padding: 15px 20px;
-            border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: flex-start;
-            background: rgba(255,255,255,0.02);
-        }
-        .head-info h3 { font-size: 1rem; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
-        .head-info .url { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-top: 3px; }
+        /* Status Colors borders */
+        .tile-ok { border-left-color: var(--status-ok); }
+        .tile-warn { border-left-color: var(--status-warn); }
+        .tile-crit { border-left-color: var(--status-crit); }
+        
+        /* Glow effect on hover based on status */
+        .tile-ok:hover { box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15); }
+        .tile-crit:hover { box-shadow: 0 8px 20px rgba(239, 68, 68, 0.15); }
 
-        .head-actions { display: flex; align-items: center; gap: 10px; }
-        .status-badge {
-            font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;
-            background: rgba(0,0,0,0.3); border: 1px solid transparent; letter-spacing: 1px;
-        }
-        .btn-icon { background: transparent; border: none; color: #666; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
-        .btn-icon:hover { color: var(--neon-red); }
+        .tile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .tile-title { font-size: 0.95rem; font-weight: 600; color: #fff; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 180px; }
+        .tile-url { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-code); }
+        
+        .tile-metrics { display: flex; align-items: baseline; gap: 8px; }
+        .tile-latency { font-size: 1.5rem; font-weight: 700; font-family: var(--font-code); }
+        .tile-unit { font-size: 0.8rem; color: var(--text-muted); }
 
-        /* Status Colors */
-        .st-ok { color: var(--neon-green); border-color: rgba(10, 255, 104, 0.3); box-shadow: 0 0 10px rgba(10, 255, 104, 0.1); }
-        .st-warn { color: var(--neon-orange); border-color: rgba(255, 145, 0, 0.3); }
-        .st-err { color: var(--neon-red); border-color: rgba(255, 15, 75, 0.3); box-shadow: 0 0 10px rgba(255, 15, 75, 0.1); }
-
-        /* Panel Body */
-        .panel-body {
-            padding: 20px;
-            flex: 1;
-            display: grid;
-            /* Layout Grid Interno: 2 colunas (Gráfico Tempo maior, Pizza menor) */
-            grid-template-columns: 2fr 1fr; 
-            grid-template-rows: auto 1fr;
-            gap: 20px;
+        .tile-status-badge { 
+            font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; 
+            background: rgba(255,255,255,0.05);
         }
 
-        /* KPI Row (Topo) */
-        .kpi-row {
-            grid-column: 1 / -1;
-            display: flex; gap: 40px;
-            border-bottom: 1px dashed rgba(255,255,255,0.1);
-            padding-bottom: 15px;
-        }
-        .kpi { display: flex; flex-direction: column; }
-        .kpi span { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .kpi b { font-size: 1.8rem; font-weight: 400; color: #fff; }
-
-        /* Chart Containers */
-        .chart-area {
-            position: relative; width: 100%; height: 200px;
-            border-right: 1px solid var(--glass-border); padding-right: 15px;
-        }
-        .chart-donut {
-            position: relative; width: 100%; height: 200px;
+        /* --- DETAIL MODAL (THE "DYNATRACE" VIEW) --- */
+        .overlay-backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(12px);
+            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
+        .overlay-backdrop.active { opacity: 1; pointer-events: all; }
 
-        /* --- MODALS (Dark Style) --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: #0f0f13; border: 1px solid var(--glass-border); width: 450px; padding: 30px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
-        
-        .modal h2 { margin-bottom: 20px; color: #fff; font-weight: 400; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
-        
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 6px; }
-        .input-group input { 
-            width: 100%; padding: 12px; background: rgba(255,255,255,0.05); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; outline: none;
+        .detail-glass-panel {
+            width: 90%; max-width: 1200px; height: 85vh;
+            background: #111217;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column;
+            transform: scale(0.95); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            overflow: hidden;
         }
-        .input-group input:focus { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.05); }
+        .overlay-backdrop.active .detail-glass-panel { transform: scale(1); }
 
-        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        /* Modal Header */
+        .detail-header {
+            padding: 20px 30px; border-bottom: 1px solid var(--border-subtle);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02);
+        }
+        .dh-title h2 { font-size: 1.4rem; font-weight: 600; color: #fff; }
+        .dh-meta { display: flex; gap: 15px; margin-top: 5px; color: var(--text-muted); font-size: 0.85rem; }
+        
+        .dh-actions { display: flex; gap: 10px; }
 
-        /* Toast */
-        .toast {
-            position: fixed; bottom: 30px; right: 30px; background: #181820; border: 1px solid var(--glass-border);
-            color: #fff; padding: 15px 25px; border-radius: 8px; font-size: 0.9rem;
-            border-left: 4px solid var(--neon-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: none; z-index: 2000;
+        /* Modal Body Grid */
+        .detail-body {
+            flex: 1; padding: 30px; overflow-y: auto;
+            display: grid; 
+            grid-template-columns: 3fr 1fr; /* Main Chart vs Sidebar */
+            grid-template-rows: auto 1fr;
+            gap: 25px;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* KPI Cards in Modal */
+        .kpi-deck {
+            grid-column: 1 / -1;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+        }
+        .kpi-card {
+            background: rgba(255,255,255,0.03); border-radius: 8px; padding: 15px;
+            border: 1px solid var(--border-subtle);
+        }
+        .kpi-card label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px; }
+        .kpi-card .val { font-size: 1.8rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
 
+        /* Main Chart Area */
+        .main-chart-container {
+            background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border-subtle);
+            padding: 20px; position: relative; min-height: 300px; display: flex; flex-direction: column;
+        }
+        .section-title { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; display: block; }
+
+        /* Sidebar Info */
+        .sidebar-info {
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        .donut-container {
+            background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border-subtle);
+            padding: 20px; height: 300px;
+        }
+        .log-table-container {
+            flex: 1; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 15px;
+            font-family: var(--font-code); font-size: 0.8rem; overflow: hidden;
+            background: #0d0e12;
+        }
+        .log-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .log-row:last-child { border-bottom: none; }
+        .log-code { font-weight: bold; }
+        .c-200 { color: var(--status-ok); }
+        .c-500 { color: var(--status-crit); }
+        .c-400 { color: var(--status-warn); }
+
+        /* --- UTILS --- */
+        .empty-placeholder { grid-column: 1/-1; text-align: center; margin-top: 100px; color: var(--text-muted); }
+        .modal-form { background: #1a1c24; width: 400px; padding: 30px; border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.85rem; }
+        .form-group input { width: 100%; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; outline: none; }
+        .form-group input:focus { border-color: var(--brand-primary); }
+
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Sentinel <b>AI Enterprise</b></h1>
-        <div class="toolbar">
-            <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Configurações</button>
-            <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
+        <div class="brand">
+            <div class="live-indicator"></div>
+            Sentinel <span>OpsCenter</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ghost" onclick="openModal('modalConfig')">⚙️ Configurações</button>
+            <button class="btn-ghost btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
         </div>
     </header>
 
-    <div class="dashboard-grid" id="grid">
-        <div id="empty-state" style="grid-column: 1/-1; text-align: center; margin-top: 100px; opacity: 0.5;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">📊</div>
-            <h3>Dashboard Vazio</h3>
-            <p>Adicione monitores para visualizar as métricas em tempo real.</p>
+    <div class="dashboard-grid" id="tileGrid">
+        <div class="empty-placeholder" id="emptyState">
+            <h3>OpsCenter Vazio</h3>
+            <p>Adicione um serviço para começar a telemetria.</p>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modalAdd">
-        <div class="modal">
-            <h2>Adicionar Monitor</h2>
-            <div class="input-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Backend Checkout"></div>
-            <div class="input-group"><label>Endpoint URL</label><input type="url" id="inpUrl" placeholder="https://api..."></div>
-            <div class="input-group"><label>Intervalo (Minutos)</label><input type="number" id="inpInterval" value="1" step="0.1"></div>
-            <div class="modal-footer">
-                <button class="btn btn-glass" onclick="closeModal('modalAdd')">Cancelar</button>
-                <button class="btn btn-primary" onclick="addMonitor()">Salvar</button>
+    <div class="overlay-backdrop" id="detailOverlay">
+        <div class="detail-glass-panel">
+            <div class="detail-header">
+                <div>
+                    <div class="dh-title">
+                        <h2 id="detailName">Service Name</h2>
+                    </div>
+                    <div class="dh-meta">
+                        <span id="detailUrl">https://api.example.com</span>
+                        <span id="detailInterval">Intervalo: 1m</span>
+                    </div>
+                </div>
+                <div class="dh-actions">
+                    <button class="btn-ghost" style="border-color: var(--status-crit); color: var(--status-crit);" onclick="deleteCurrentMonitor()">Excluir Serviço</button>
+                    <button class="btn-ghost" onclick="closeDetail()">Fechar ✕</button>
+                </div>
+            </div>
+
+            <div class="detail-body">
+                <div class="kpi-deck">
+                    <div class="kpi-card">
+                        <label>Status Atual</label>
+                        <div class="val" id="kpiStatus" style="font-size: 1.2rem;">--</div>
+                    </div>
+                    <div class="kpi-card">
+                        <label>Latência Atual</label>
+                        <div class="val"><span id="kpiLat">--</span> <span style="font-size:0.8rem; color:#666">ms</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <label>Total Requests</label>
+                        <div class="val" id="kpiTotal">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <label>Taxa de Erro (5m)</label>
+                        <div class="val" id="kpiErrorRate">0%</div>
+                    </div>
+                </div>
+
+                <div class="main-chart-container">
+                    <span class="section-title">Latência & Saúde (Tempo Real)</span>
+                    <div style="flex:1; width:100%; position: relative;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="sidebar-info">
+                    <div class="donut-container">
+                        <span class="section-title">Distribuição HTTP Codes</span>
+                        <div style="height: 220px; position: relative;">
+                            <canvas id="donutChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="log-table-container">
+                        <span class="section-title" style="margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">Últimos Eventos</span>
+                        <div id="logList">
+                            </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="modalConfig">
-        <div class="modal">
-            <h2>Configurações de Alerta</h2>
-            <div class="input-group"><label>Service ID (EmailJS)</label><input type="text" id="cfgService"></div>
-            <div class="input-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
-            <div class="input-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
-            <div class="input-group"><label>Email Destino</label><input type="email" id="cfgDest"></div>
-            <div class="modal-footer">
-                <button class="btn btn-glass" onclick="closeModal('modalConfig')">Cancelar</button>
-                <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
+    <div class="overlay-backdrop" id="modalAdd">
+        <div class="modal-form">
+            <h2 style="color:#fff; margin-bottom:20px;">Adicionar Monitor</h2>
+            <div class="form-group"><label>Nome</label><input type="text" id="inpName" placeholder="Ex: Gateway Pagamento"></div>
+            <div class="form-group"><label>URL</label><input type="url" id="inpUrl" placeholder="https://..."></div>
+            <div class="form-group"><label>Intervalo (min)</label><input type="number" id="inpInterval" value="1" step="0.1"></div>
+            <div style="text-align:right; margin-top:20px;">
+                <button class="btn-ghost" onclick="closeModals()">Cancelar</button>
+                <button class="btn-ghost btn-primary" onclick="addMonitor()">Salvar</button>
             </div>
         </div>
     </div>
 
-    <div id="toast" class="toast"></div>
+    <div class="overlay-backdrop" id="modalConfig">
+        <div class="modal-form">
+            <h2 style="color:#fff; margin-bottom:20px;">EmailJS Config</h2>
+            <div class="form-group"><label>Service ID</label><input type="text" id="cfgService"></div>
+            <div class="form-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
+            <div class="form-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
+            <div class="form-group"><label>Email Destino</label><input type="text" id="cfgDest"></div>
+            <div style="text-align:right; margin-top:20px;">
+                <button class="btn-ghost" onclick="closeModals()">Cancelar</button>
+                <button class="btn-ghost btn-primary" onclick="saveConfig()">Salvar</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- LOGIC CORE ---
-        const ALERT_COOLDOWN_MS = 15 * 60 * 1000;
+        // --- STATE ---
+        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_ops_config')) || {};
+        let activeMonitorId = null; // Qual monitor está aberto no detalhe?
         
-        let monitors = JSON.parse(localStorage.getItem('sentinel_dark_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_dark_config')) || {
-            serviceId: '', templateId: '', publicKey: '', destination: ''
-        };
-        let charts = {};
+        // Chart Instances
+        let mainChartInst = null;
+        let donutChartInst = null;
 
+        // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             if (config.publicKey) emailjs.init(config.publicKey);
-            renderAll();
-            setInterval(monitorLoop, 1500);
+            renderTiles();
+            setInterval(loopEngine, 1000); // 1s loop tick
         });
 
-        // --- ENGINE ---
-        function monitorLoop() {
+        // --- CORE ENGINE ---
+        function loopEngine() {
             const now = Date.now();
             monitors.forEach(m => {
                 if (now - m.lastCheck >= (m.interval * 60000)) {
-                    pingTarget(m);
+                    runCheck(m);
                 }
             });
         }
 
-        async function pingTarget(m) {
+        async function runCheck(m) {
             m.lastCheck = Date.now();
-            const result = await simulateNetwork(m);
-
-            m.history.push({ x: m.lastCheck, y: result.latency, code: result.code });
-            if (m.history.length > 50) m.history.shift();
-
-            if (!m.stats) m.stats = {};
-            if (!m.stats[result.code]) m.stats[result.code] = 0;
-            m.stats[result.code]++;
+            const res = await simulateNetwork(m);
             
-            m.totalCalls = (m.totalCalls || 0) + 1;
+            // Update Data
+            m.history.push({ x: m.lastCheck, y: res.latency, code: res.code });
+            if(m.history.length > 100) m.history.shift(); // Keep last 100 points
+            
+            if(!m.stats) m.stats = {};
+            m.stats[res.code] = (m.stats[res.code] || 0) + 1;
+            m.totalRequests = (m.totalRequests || 0) + 1;
+            m.lastCode = res.code;
+            m.lastLatency = res.latency;
 
-            if (result.code >= 400) m.consecutiveErrors = (m.consecutiveErrors || 0) + 1;
-            else m.consecutiveErrors = 0;
-
+            // Alert Logic
+            if(res.code >= 400) m.errorsSeq = (m.errorsSeq || 0) + 1;
+            else m.errorsSeq = 0;
+            
+            checkAlerts(m, res);
             saveData();
-            updatePanel(m, result);
-            checkAlerts(m, result);
-        }
-
-        // --- RENDER (DARK KIBANA STYLE) ---
-        function renderAll() {
-            const grid = document.getElementById('grid');
-            if (monitors.length === 0) { document.getElementById('empty-state').style.display = 'block'; return; }
-            document.getElementById('empty-state').style.display = 'none';
-            monitors.forEach(m => { if(!document.getElementById(`panel-${m.id}`)) createPanelDOM(m); });
-        }
-
-        function createPanelDOM(m) {
-            const grid = document.getElementById('grid');
-            const el = document.createElement('div');
-            el.className = 'panel';
-            el.id = `panel-${m.id}`;
             
+            // Update UI
+            updateTile(m); // Atualiza o card pequeno
+            if(activeMonitorId === m.id) updateDetailView(m); // Atualiza o modal se aberto
+        }
+
+        // --- UI: TILES (DASHBOARD) ---
+        function renderTiles() {
+            const grid = document.getElementById('tileGrid');
+            if(monitors.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                grid.innerHTML = '';
+                grid.appendChild(document.getElementById('emptyState'));
+                return;
+            }
+            document.getElementById('emptyState').style.display = 'none';
+            
+            monitors.forEach(m => {
+                let el = document.getElementById(`tile-${m.id}`);
+                if(!el) {
+                    el = document.createElement('div');
+                    el.className = 'monitor-tile tile-ok'; // Default style
+                    el.id = `tile-${m.id}`;
+                    el.onclick = () => openDetail(m.id);
+                    grid.appendChild(el);
+                }
+                updateTileElement(el, m);
+            });
+        }
+
+        function updateTile(m) {
+            const el = document.getElementById(`tile-${m.id}`);
+            if(el) updateTileElement(el, m);
+        }
+
+        function updateTileElement(el, m) {
+            // Determine status color
+            let statusClass = 'tile-ok';
+            let statusText = 'HEALTHY';
+            let statusColor = 'var(--status-ok)';
+
+            if(m.lastCode >= 500) { statusClass = 'tile-crit'; statusText = 'CRITICAL'; statusColor = 'var(--status-crit)'; }
+            else if(m.lastCode >= 400) { statusClass = 'tile-warn'; statusText = 'WARN'; statusColor = 'var(--status-warn)'; }
+            else if(!m.lastCode) { statusText = 'PENDING'; statusColor = '#666'; }
+
+            el.className = `monitor-tile ${statusClass}`;
             el.innerHTML = `
-                <div class="panel-head">
-                    <div class="head-info">
-                        <h3>${m.name}</h3>
-                        <div class="url">${m.url}</div>
+                <div class="tile-header">
+                    <div>
+                        <div class="tile-title" title="${m.name}">${m.name}</div>
+                        <div class="tile-url">${m.url}</div>
                     </div>
-                    <div class="head-actions">
-                        <div id="badge-${m.id}" class="status-badge st-ok">WAITING</div>
-                        <button class="btn-icon" onclick="removeMonitor(${m.id})">×</button>
-                    </div>
+                    <div class="tile-status-badge" style="color:${statusColor}; border:1px solid ${statusColor}">${statusText}</div>
                 </div>
-
-                <div class="panel-body">
-                    <div class="kpi-row">
-                        <div class="kpi">
-                            <span>Total Requests</span>
-                            <b id="val-total-${m.id}">0</b>
-                        </div>
-                        <div class="kpi">
-                            <span>Latency (ms)</span>
-                            <b id="val-lat-${m.id}">--</b>
-                        </div>
-                        <div class="kpi">
-                            <span>Status</span>
-                            <b id="val-code-${m.id}" style="color:var(--text-muted)">--</b>
-                        </div>
-                    </div>
-
-                    <div class="chart-area">
-                        <canvas id="chart-time-${m.id}"></canvas>
-                    </div>
-                    <div class="chart-donut">
-                        <canvas id="chart-pie-${m.id}"></canvas>
-                    </div>
+                <div class="tile-metrics">
+                    <span class="tile-latency" style="color:${statusColor}">${m.lastLatency || '--'}</span>
+                    <span class="tile-unit">ms</span>
                 </div>
             `;
-            grid.appendChild(el);
-            initCharts(m);
-            if(m.history.length > 0) updatePanel(m, {code: m.history[m.history.length-1].code, latency: m.history[m.history.length-1].y});
         }
 
-        function updatePanel(m, result) {
-            // KPIs
-            document.getElementById(`val-total-${m.id}`).innerText = m.totalCalls || 0;
-            document.getElementById(`val-lat-${m.id}`).innerText = result.latency;
-            const codeEl = document.getElementById(`val-code-${m.id}`);
-            codeEl.innerText = result.code;
-            codeEl.style.color = result.code >= 400 ? 'var(--neon-red)' : 'var(--neon-blue)';
+        // --- UI: DETAIL MODAL (THE BIG ONE) ---
+        function openDetail(id) {
+            activeMonitorId = id;
+            const m = monitors.find(x => x.id === id);
+            if(!m) return;
 
-            // Badge
-            const badge = document.getElementById(`badge-${m.id}`);
-            if (result.code >= 500) { badge.className = 'status-badge st-err'; badge.innerText = 'CRITICAL'; }
-            else if (result.code >= 400) { badge.className = 'status-badge st-err'; badge.innerText = 'ERROR'; }
-            else { badge.className = 'status-badge st-ok'; badge.innerText = 'HEALTHY'; }
+            document.getElementById('detailOverlay').classList.add('active');
+            
+            // Init Structure
+            document.getElementById('detailName').innerText = m.name;
+            document.getElementById('detailUrl').innerText = m.url;
+            document.getElementById('detailInterval').innerText = `Intervalo: ${m.interval}m`;
 
-            // Charts
-            if(charts[m.id]) {
-                const cTime = charts[m.id].time;
-                const cPie = charts[m.id].pie;
+            // Init Charts
+            initDetailCharts(m);
+            updateDetailView(m);
+        }
 
-                // Time Series (Area Chart)
-                cTime.data.datasets[0].data = m.history;
-                // Cor dinâmica: Vermelho se erro, Azul Neon se ok
-                const mainColor = result.code >= 400 ? '#ff0f4b' : '#00f3ff';
-                const fillColor = result.code >= 400 ? 'rgba(255, 15, 75, 0.2)' : 'rgba(0, 243, 255, 0.15)';
-                
-                cTime.data.datasets[0].borderColor = mainColor;
-                cTime.data.datasets[0].backgroundColor = fillColor;
-                cTime.update('none');
+        function closeDetail() {
+            document.getElementById('detailOverlay').classList.remove('active');
+            activeMonitorId = null;
+            if(mainChartInst) mainChartInst.destroy();
+            if(donutChartInst) donutChartInst.destroy();
+        }
 
-                // Pie Chart
-                const codes = Object.keys(m.stats).sort();
-                cPie.data.labels = codes;
-                cPie.data.datasets[0].data = codes.map(c => m.stats[c]);
-                cPie.data.datasets[0].backgroundColor = codes.map(c => {
-                    const code = parseInt(c);
-                    if (code >= 500) return '#ff0f4b';
-                    if (code >= 400) return '#ff9100';
-                    return '#0aff68';
+        function updateDetailView(m) {
+            // Update KPIs
+            const code = m.lastCode || 0;
+            let color = '#10b981';
+            let text = 'HEALTHY';
+            if(code >= 500) { color = '#ef4444'; text = 'CRITICAL'; }
+            else if(code >= 400) { color = '#f59e0b'; text = 'WARN'; }
+
+            const statusEl = document.getElementById('kpiStatus');
+            statusEl.innerText = text;
+            statusEl.style.color = color;
+
+            document.getElementById('kpiLat').innerText = m.lastLatency || '--';
+            document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
+
+            // Calculate Error Rate (last 50 points approximation)
+            const recent = m.history.slice(-50);
+            const errs = recent.filter(x => x.code >= 400).length;
+            const rate = recent.length ? ((errs / recent.length) * 100).toFixed(1) : 0;
+            const rateEl = document.getElementById('kpiErrorRate');
+            rateEl.innerText = `${rate}%`;
+            rateEl.style.color = rate > 0 ? '#f59e0b' : '#fff';
+
+            // Update Logs
+            const logList = document.getElementById('logList');
+            logList.innerHTML = '';
+            // Show last 6 events reversed
+            m.history.slice(-6).reverse().forEach(h => {
+                const date = new Date(h.x).toLocaleTimeString();
+                let cClass = h.code >= 500 ? 'c-500' : (h.code >= 400 ? 'c-400' : 'c-200');
+                logList.innerHTML += `
+                    <div class="log-row">
+                        <span style="color:#666">${date}</span>
+                        <span class="log-code ${cClass}">${h.code}</span>
+                        <span>${h.y}ms</span>
+                    </div>
+                `;
+            });
+
+            // Update Charts
+            if(mainChartInst) {
+                mainChartInst.data.datasets[0].data = m.history;
+                // Dynamic gradient/color based on current status
+                const chartColor = code >= 400 ? '#ef4444' : '#00a8cc';
+                mainChartInst.data.datasets[0].borderColor = chartColor;
+                mainChartInst.data.datasets[0].backgroundColor = getGradient(mainChartInst.ctx, chartColor);
+                mainChartInst.update('none');
+            }
+
+            if(donutChartInst) {
+                const codes = Object.keys(m.stats);
+                const data = codes.map(c => m.stats[c]);
+                const colors = codes.map(c => {
+                    const ic = parseInt(c);
+                    if(ic >= 500) return '#ef4444';
+                    if(ic >= 400) return '#f59e0b';
+                    return '#10b981';
                 });
-                cPie.update('none');
+                donutChartInst.data.labels = codes;
+                donutChartInst.data.datasets[0].data = data;
+                donutChartInst.data.datasets[0].backgroundColor = colors;
+                donutChartInst.update('none');
             }
         }
 
-        function initCharts(m) {
-            // Configurações Globais Dark Chart.js
-            Chart.defaults.color = '#8b9bb4';
-            Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+        function initDetailCharts(m) {
+            // Destroy if exists
+            if(mainChartInst) mainChartInst.destroy();
+            if(donutChartInst) donutChartInst.destroy();
 
-            // 1. Time Chart (Area)
-            const ctxTime = document.getElementById(`chart-time-${m.id}`).getContext('2d');
-            const timeChart = new Chart(ctxTime, {
+            // Main Area Chart
+            const ctxMain = document.getElementById('mainChart').getContext('2d');
+            mainChartInst = new Chart(ctxMain, {
                 type: 'line',
                 data: {
                     datasets: [{
                         data: m.history,
-                        borderColor: '#00f3ff',
-                        backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                        borderColor: '#00a8cc',
                         borderWidth: 2,
+                        fill: true,
+                        backgroundColor: 'rgba(0, 168, 204, 0.1)',
                         pointRadius: 0,
-                        fill: 'origin',
+                        pointHoverRadius: 4,
                         tension: 0.3
                     }]
                 },
@@ -407,82 +539,90 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { display: false },
-                        y: { display: true, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }
+                        y: { 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#666', font: {family: "'JetBrains Mono'"} }
+                        }
                     }
                 }
             });
 
-            // 2. Pie Chart
-            const ctxPie = document.getElementById(`chart-pie-${m.id}`).getContext('2d');
-            const pieChart = new Chart(ctxPie, {
+            // Donut Chart
+            const ctxDonut = document.getElementById('donutChart').getContext('2d');
+            donutChartInst = new Chart(ctxDonut, {
                 type: 'doughnut',
                 data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
                 options: {
                     responsive: true, maintainAspectRatio: false, animation: false,
                     plugins: { 
-                        legend: { position: 'right', labels: { boxWidth: 8, font: {size: 10} } } 
+                        legend: { position: 'right', labels: { color: '#aaa', boxWidth: 10, font: {size: 10} } } 
                     },
-                    cutout: '65%'
+                    cutout: '70%'
                 }
             });
-
-            charts[m.id] = { time: timeChart, pie: pieChart };
         }
 
-        // --- NETWORK SIM & ALERTS ---
+        function getGradient(ctx, color) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, color.replace(')', ', 0.3)').replace('rgb', 'rgba')); // Hacky opacity
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            return gradient;
+        }
+
+        // --- SIMULATION & ALERTS ---
         function simulateNetwork(m) {
             return new Promise(resolve => {
-                const rand = Math.random();
+                const r = Math.random();
                 let code = 200;
-                let latency = Math.floor(Math.random() * 80) + 20;
-                if (rand > 0.85) { 
-                    code = Math.random() > 0.6 ? 500 : 429; 
-                    latency += 250; 
-                }
-                setTimeout(() => resolve({ code, latency }), 200);
+                let lat = Math.floor(Math.random() * 50) + 20;
+                
+                // Random errors
+                if(r > 0.85) { code = 500; lat += 200; }
+                else if(r > 0.80) { code = 429; }
+                
+                setTimeout(() => resolve({ code, latency: lat }), 200);
             });
         }
 
-        async function checkAlerts(m, result) {
-            const now = Date.now();
-            if (now - (m.lastAlert||0) < ALERT_COOLDOWN_MS) return;
-            
-            let reason = null;
-            if (m.consecutiveErrors >= 5) reason = `Falha contínua detectada (5x Erros)`;
-            
-            if (reason && config.serviceId) {
-                m.lastAlert = now;
-                saveData();
-                try {
-                    await emailjs.send(config.serviceId, config.templateId, {
-                        api_name: m.name, message: reason, last_code: result.code, to_email: config.destination
-                    });
-                    showToast('Alerta enviado!', 'success');
-                } catch(e) { console.error(e); }
+        async function checkAlerts(m, res) {
+            if(m.errorsSeq >= 5) {
+                // Trigger logic here (emailjs)
+                // Debounce check
+                const now = Date.now();
+                if(now - (m.lastAlert || 0) > (15 * 60 * 1000)) {
+                    m.lastAlert = now;
+                    if(config.serviceId) {
+                        try {
+                            await emailjs.send(config.serviceId, config.templateId, {
+                                api_name: m.name, message: "5 consecutive errors", to_email: config.destination
+                            });
+                            console.log('Alert sent');
+                        } catch(e) {}
+                    }
+                }
             }
         }
 
-        // --- MANAGERS ---
+        // --- CRUD / CONFIG MANAGERS ---
         function addMonitor() {
             const name = document.getElementById('inpName').value;
             const url = document.getElementById('inpUrl').value;
             const interval = document.getElementById('inpInterval').value;
-            if (name && url) {
+            if(name && url) {
                 monitors.push({
                     id: Date.now(), name, url, interval: parseFloat(interval),
-                    lastCheck: 0, consecutiveErrors: 0, lastAlert: 0, history: [], stats: {}, totalCalls: 0
+                    history: [], stats: {}, errorsSeq: 0
                 });
-                saveData(); renderAll(); closeModal('modalAdd');
+                saveData(); renderTiles(); closeModals();
             }
         }
 
-        function removeMonitor(id) {
-            if(confirm('Remover painel?')) {
-                monitors = monitors.filter(m => m.id !== id);
-                if(charts[id]) { charts[id].time.destroy(); charts[id].pie.destroy(); delete charts[id]; }
-                document.getElementById(`panel-${id}`).remove();
+        function deleteCurrentMonitor() {
+            if(confirm("Remover este monitor?")) {
+                monitors = monitors.filter(m => m.id !== activeMonitorId);
                 saveData();
-                if(monitors.length === 0) renderAll();
+                closeDetail();
+                renderTiles();
             }
         }
 
@@ -491,27 +631,26 @@
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_dark_config', JSON.stringify(config));
+            localStorage.setItem('sentinel_ops_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
-            closeModal('modalConfig'); showToast('Salvo com sucesso!', 'success');
+            closeModals();
         }
 
-        function saveData() { localStorage.setItem('sentinel_dark_monitors', JSON.stringify(monitors)); }
+        function saveData() { localStorage.setItem('sentinel_ops_monitors', JSON.stringify(monitors)); }
 
-        // --- UI UTILS ---
-        function openModal(id) { document.getElementById(id).classList.add('active'); 
+        // Modal Utils
+        function openModal(id) { 
+            document.getElementById(id).classList.add('active'); 
             if(id === 'modalConfig') {
-                document.getElementById('cfgService').value = config.serviceId;
-                document.getElementById('cfgTemplate').value = config.templateId;
-                document.getElementById('cfgKey').value = config.publicKey;
-                document.getElementById('cfgDest').value = config.destination;
+                document.getElementById('cfgService').value = config.serviceId || '';
+                document.getElementById('cfgTemplate').value = config.templateId || '';
+                document.getElementById('cfgKey').value = config.publicKey || '';
+                document.getElementById('cfgDest').value = config.destination || '';
             }
         }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function showToast(msg, type) {
-            const t = document.getElementById('toast');
-            t.innerText = msg; t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3000);
+        function closeModals() { 
+            document.getElementById('modalAdd').classList.remove('active');
+            document.getElementById('modalConfig').classList.remove('active');
         }
 
     </script>

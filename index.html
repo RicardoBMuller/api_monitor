@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Health Monitor Ultra</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- CSS MODERNO E VARIÁVEIS --- */
+        :root {
+            --glass-bg: rgba(20, 20, 35, 0.6); /* Mais escuro para contraste do gráfico */
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            --text-main: #ffffff;
+            --text-secondary: #a0a0a0;
+            --success: #00ff88;
+            --error: #ff4d4d;
+            --accent: #00d2ff;
+            --blur-strength: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, sans-serif; }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-main);
+            background: linear-gradient(-45deg, #050511, #160e29, #0f1c30, #000000);
+            background-size: 400% 400%;
+            animation: gradientBG 20s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1400px;
+            width: 95%;
+            margin: 0 auto;
+            padding-top: 30px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-left h1 {
+            font-weight: 200;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+        }
+
+        /* --- CONTROLES DE TEMPO (VOLUMETRIA) --- */
+        .time-selector {
+            background: rgba(255,255,255,0.05);
+            border-radius: 30px;
+            padding: 5px;
+            display: flex;
+            gap: 5px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .time-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+
+        .time-btn.active {
+            background: var(--accent);
+            color: #000;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+        }
+
+        .btn-add {
+            background: linear-gradient(45deg, #ff00cc, #333399);
+            border: none;
+            padding: 10px 25px;
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+        .btn-add:hover { transform: scale(1.05); }
+
+        /* --- GRID --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); /* Cards mais largos para o gráfico */
+            gap: 20px;
+            padding-bottom: 40px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .grid::-webkit-scrollbar { width: 5px; }
+        .grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+
+        /* --- CARD --- */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur-strength));
+            -webkit-backdrop-filter: blur(var(--blur-strength));
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            animation: fadeInUp 0.5s ease forwards;
+            display: flex;
+            flex-direction: column;
+            min-height: 280px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .status-badge.online { color: var(--success); background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3); }
+        .status-badge.offline { color: var(--error); background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.3); }
+
+        /* Dados de Volumetria */
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+        .stat-item b { color: white; display: block; font-size: 1rem; }
+
+        /* Container do Gráfico */
+        .chart-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            min-height: 120px;
+        }
+
+        /* Barra de Saúde */
+        .health-bar-bg {
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        .health-bar-fill {
+            height: 100%;
+            background: var(--success);
+            width: 100%;
+            transition: width 0.5s, background-color 0.5s;
+        }
+
+        .card-actions {
+            margin-top: 15px;
+            text-align: right;
+        }
+        .btn-delete { color: var(--error); background: none; border: none; cursor: pointer; font-size: 0.8rem; opacity: 0.5; transition: 0.3s; }
+        .btn-delete:hover { opacity: 1; }
+
+        /* --- MODAL & TOAST (Reutilizados com melhorias) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal { background: #151520; padding: 30px; border-radius: 20px; width: 400px; border: 1px solid rgba(255,255,255,0.1); transform: scale(0.8); transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: var(--text-secondary); margin-bottom: 5px; font-size: 0.85rem; }
+        .form-group input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 8px; outline: none; }
+        .form-group input:focus { border-color: var(--accent); }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-modal { padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-confirm { background: var(--success); color: #000; }
+        .btn-cancel { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="header-left">
+                <h1>Health<span style="color: var(--accent);">Monitor</span> Pro</h1>
+                <small style="color: var(--text-secondary);">Dashboard de Latência e Volumetria</small>
+            </div>
+            
+            <div class="time-selector">
+                <button class="time-btn active" onclick="setTimeWindow(1)">1 Min</button>
+                <button class="time-btn" onclick="setTimeWindow(5)">5 Min</button>
+                <button class="time-btn" onclick="setTimeWindow(10)">10 Min</button>
+            </div>
+
+            <button class="btn-add" onclick="openModal()">+ Nova API</button>
+        </header>
+
+        <div class="grid" id="apiGrid">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 20px; color: white;">Adicionar Endpoint</h2>
+            <div class="form-group">
+                <label>Nome do Serviço</label>
+                <input type="text" id="apiName" placeholder="Ex: Gateway Pagamentos">
+            </div>
+            <div class="form-group">
+                <label>URL (Simulação)</label>
+                <input type="url" id="apiUrl" placeholder="https://...">
+            </div>
+            <div class="modal-btns">
+                <button class="btn-modal btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn-modal btn-confirm" onclick="addApi()">Monitorar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO GLOBAL ---
+        let timeWindowMinutes = 1; // Padrão: 1 minuto
+        let chartInstances = {}; // Guarda referencia dos gráficos
+        let apis = [
+            { 
+                id: 1, 
+                name: 'Core Banking API', 
+                url: 'https://api.bank.com', 
+                history: [], // Array de {x: timestamp, y: latency}
+                stats: { total: 0, success: 0, fail: 0 }
+            },
+            { 
+                id: 2, 
+                name: 'User Auth Service', 
+                url: 'https://auth.service.com', 
+                history: [],
+                stats: { total: 0, success: 0, fail: 0 }
+            }
+        ];
+
+        // --- INICIALIZAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initGrid();
+            setInterval(monitorLoop, 2000); // Loop de monitoramento a cada 2s
+        });
+
+        // --- CONTROLE DE TEMPO (BOTÕES) ---
+        function setTimeWindow(minutes) {
+            timeWindowMinutes = minutes;
+            
+            // Atualiza botões
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Atualiza gráficos existentes
+            apis.forEach(api => updateChartScale(api.id));
+        }
+
+        // --- RENDERIZAÇÃO INICIAL (DOM) ---
+        function initGrid() {
+            const grid = document.getElementById('apiGrid');
+            grid.innerHTML = '';
+
+            apis.forEach(api => {
+                createCard(api);
+            });
+        }
+
+        function createCard(api) {
+            const grid = document.getElementById('apiGrid');
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `card-${api.id}`;
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3>${api.name}</h3>
+                    <span class="status-badge" id="badge-${api.id}">INICIANDO</span>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <span id="stat-latency-${api.id}">0ms</span>
+                        Latência Atual
+                    </div>
+                    <div class="stat-item">
+                        <b id="stat-total-${api.id}">0</b>
+                        Reqs Totais
+                    </div>
+                    <div class="stat-item">
+                        <b id="stat-uptime-${api.id}">100%</b>
+                        Taxa Sucesso
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="chart-${api.id}"></canvas>
+                </div>
+
+                <div class="health-bar-bg">
+                    <div class="health-bar-fill" id="health-bar-${api.id}"></div>
+                </div>
+
+                <div class="card-actions">
+                    <button class="btn-delete" onclick="removeApi(${api.id})">Encerrar Monitoramento</button>
+                </div>
+            `;
+            grid.appendChild(card);
+            initChart(api);
+        }
+
+        // --- CHART.JS CONFIG ---
+        function initChart(api) {
+            const ctx = document.getElementById(`chart-${api.id}`).getContext('2d');
+            
+            // Gradiente bonito abaixo da linha
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(0, 210, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 210, 255, 0)');
+
+            chartInstances[api.id] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Latência (ms)',
+                        data: [],
+                        borderColor: '#00d2ff',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointRadius: 0, // Sem bolinhas para visual limpo
+                        pointHoverRadius: 4,
+                        fill: true,
+                        tension: 0.4 // Curvas suaves
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false, // Desliga animação pesada no update
+                    plugins: { legend: { display: false }, tooltip: { enabled: true, mode: 'index', intersect: false } },
+                    scales: {
+                        x: { 
+                            type: 'linear', 
+                            display: false, // Esconde eixo X para limpeza visual
+                            min: Date.now() - (timeWindowMinutes * 60 * 1000),
+                            max: Date.now()
+                        },
+                        y: { 
+                            display: true, 
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            beginAtZero: true,
+                            suggestedMax: 500
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartScale(id) {
+            const chart = chartInstances[id];
+            if (!chart) return;
+            const now = Date.now();
+            chart.options.scales.x.min = now - (timeWindowMinutes * 60 * 1000);
+            chart.options.scales.x.max = now;
+            chart.update('none'); // Update sem animação para performance
+        }
+
+        // --- LÓGICA DE MONITORAMENTO ---
+        function monitorLoop() {
+            const now = Date.now();
+            
+            apis.forEach(async (api) => {
+                // 1. Simula Ping
+                const latency = await simulatePing();
+                const isSuccess = latency !== -1;
+
+                // 2. Atualiza Estatísticas
+                api.stats.total++;
+                if (isSuccess) api.stats.success++;
+                else api.stats.fail++;
+
+                // 3. Atualiza Dados Históricos
+                api.history.push({ x: now, y: isSuccess ? latency : 0 });
+                
+                // Limpeza de memória: remove dados muito antigos (> 15 min)
+                if (api.history.length > 600) api.history.shift();
+
+                // 4. Atualiza UI (DOM e Gráfico)
+                updateCardUI(api, latency, isSuccess, now);
+            });
+        }
+
+        function updateCardUI(api, latency, isSuccess, now) {
+            // Badges e Textos
+            const badge = document.getElementById(`badge-${api.id}`);
+            const statLatency = document.getElementById(`stat-latency-${api.id}`);
+            const statTotal = document.getElementById(`stat-total-${api.id}`);
+            const statUptime = document.getElementById(`stat-uptime-${api.id}`);
+            const healthBar = document.getElementById(`health-bar-${api.id}`);
+
+            if (!badge) return; // Segurança caso card tenha sido deletado
+
+            // Status Badge
+            if (isSuccess) {
+                badge.className = 'status-badge online';
+                badge.innerText = 'ONLINE';
+                statLatency.innerText = `${latency}ms`;
+                statLatency.style.color = 'var(--success)';
+            } else {
+                badge.className = 'status-badge offline';
+                badge.innerText = 'OFFLINE';
+                statLatency.innerText = `TIMEOUT`;
+                statLatency.style.color = 'var(--error)';
+            }
+
+            // Stats
+            statTotal.innerText = api.stats.total;
+            const uptime = ((api.stats.success / api.stats.total) * 100).toFixed(1);
+            statUptime.innerText = `${uptime}%`;
+
+            // Health Bar color
+            healthBar.style.width = `${uptime}%`;
+            if (uptime < 50) healthBar.style.backgroundColor = 'var(--error)';
+            else if (uptime < 90) healthBar.style.backgroundColor = '#ffcc00';
+            else healthBar.style.backgroundColor = 'var(--success)';
+
+            // Atualiza Gráfico
+            const chart = chartInstances[api.id];
+            if (chart) {
+                chart.data.datasets[0].data = api.history.filter(point => point.x > (now - (timeWindowMinutes * 60 * 1000)));
+                
+                // Muda cor da linha se der erro
+                if (!isSuccess) chart.data.datasets[0].borderColor = '#ff4d4d';
+                else chart.data.datasets[0].borderColor = '#00d2ff';
+
+                // Rolagem do tempo no eixo X
+                chart.options.scales.x.min = now - (timeWindowMinutes * 60 * 1000);
+                chart.options.scales.x.max = now;
+                
+                chart.update('none');
+            }
+        }
+
+        // --- SIMULAÇÃO DE REDE (Pode ser substituído por fetch real) ---
+        function simulatePing() {
+            return new Promise(resolve => {
+                const isOnline = Math.random() > 0.05; // 95% de chance de online
+                const latency = Math.floor(Math.random() * 200) + 20 + (Math.random() * 100); // Latencia variante
+                // Simula delay assincrono
+                setTimeout(() => {
+                    resolve(isOnline ? latency : -1);
+                }, 100); // Resposta rápida para UI fluida
+            });
+        }
+
+        // --- GERENCIAMENTO DE APIs ---
+        function addApi() {
+            const name = document.getElementById('apiName').value;
+            const url = document.getElementById('apiUrl').value;
+            if(!name) return;
+
+            const newApi = { 
+                id: Date.now(), 
+                name, 
+                url, 
+                history: [],
+                stats: { total: 0, success: 0, fail: 0 }
+            };
+            
+            apis.push(newApi);
+            createCard(newApi);
+            closeModal();
+        }
+
+        function removeApi(id) {
+            apis = apis.filter(api => api.id !== id);
+            
+            // Destrói gráfico para liberar memória
+            if (chartInstances[id]) {
+                chartInstances[id].destroy();
+                delete chartInstances[id];
+            }
+            
+            // Remove do DOM
+            const card = document.getElementById(`card-${id}`);
+            if(card) {
+                card.style.transform = 'scale(0.9)';
+                card.style.opacity = '0';
+                setTimeout(() => card.remove(), 300);
+            }
+        }
+
+        // Modal Helpers
+        function openModal() { document.getElementById('modalOverlay').classList.add('active'); }
+        function closeModal() { 
+            document.getElementById('modalOverlay').classList.remove('active'); 
+            document.getElementById('apiName').value = '';
+            document.getElementById('apiUrl').value = '';
+        }
+    </script>
+</body>
+</html>

@@ -3,278 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel NuCel 2.3 | Cyber-Deck Design</title>
+    <title>Sentinel AI | Dark Enterprise</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- THEME CONFIG --- */
+        /* --- THEME CONFIG (DARK NEON) --- */
         :root {
             --bg-deep: #050508;
-            --glass-base: rgba(18, 18, 28, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.06);
-            --glass-panel: rgba(255, 255, 255, 0.03);
+            --glass-panel: rgba(20, 20, 30, 0.7); /* Painel escuro translúcido */
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 255, 255, 0.03);
             
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+
+            /* Palette Neon */
             --neon-blue: #00f3ff;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
             --neon-orange: #ff9100;
+            --neon-purple: #bc13fe;
 
             --font-main: 'Outfit', sans-serif;
-            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
 
         body {
             background-color: var(--bg-deep);
+            /* Fundo sutil */
             background-image: 
-                linear-gradient(to bottom, transparent 80%, rgba(0, 243, 255, 0.03)),
-                radial-gradient(circle at 50% -30%, rgba(0, 243, 255, 0.15), transparent 50%);
-            color: #fff;
+                radial-gradient(circle at 15% 50%, rgba(188, 19, 254, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.05), transparent 25%);
+            color: var(--text-main);
             height: 100vh;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- LAYOUT --- */
-        .app-shell {
-            max-width: 1600px; width: 95%; margin: 0 auto;
-            height: 100vh; display: flex; flex-direction: column; padding-top: 30px;
-        }
-
+        /* --- HEADER --- */
         header {
-            flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 35px; padding: 0 10px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
         }
 
-        h1 { font-weight: 200; font-size: 1.8rem; letter-spacing: -1px; }
-        h1 b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
+        h1 { font-weight: 300; font-size: 1.4rem; letter-spacing: 1px; }
+        h1 b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
 
-        .toolbar { display: flex; gap: 12px; }
+        .toolbar { display: flex; gap: 10px; }
 
         .btn {
-            border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 0.85rem;
-            cursor: pointer; transition: all 0.3s var(--ease-out); display: flex; align-items: center; gap: 8px;
+            border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.8rem;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
         }
-        .btn-glass { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: #aaa; }
-        .btn-glass:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.2); }
-        .btn-glass.active { border-color: var(--neon-green); color: var(--neon-green); background: rgba(10, 255, 104, 0.05); }
-        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 4px 20px rgba(0, 243, 255, 0.2); }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0, 243, 255, 0.4); }
+        
+        .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
+        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
+        
+        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+        .btn-primary:hover { box-shadow: 0 0 25px rgba(0, 243, 255, 0.4); }
 
-        /* --- GRID UNIFORME --- */
-        .monitor-grid {
-            flex: 1; display: grid;
-            /* Cards mais largos e com altura mínima igual */
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            grid-auto-rows: 1fr; /* Força mesma altura na linha */
+        /* --- LAYOUT GRID --- */
+        .dashboard-grid {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(650px, 1fr)); /* Cards largos estilo dashboard */
+            grid-auto-rows: min-content;
+            gap: 25px;
             align-content: start;
-            gap: 25px; overflow-y: auto; padding: 5px 10px 80px 10px;
         }
-        .monitor-grid::-webkit-scrollbar { width: 5px; }
-        .monitor-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
 
-        /* --- CARD DESIGN V3 (CYBER-DECK) --- */
-        .card {
-            background: var(--glass-base); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px;
-            position: relative; animation: popIn 0.5s var(--ease-out);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4); 
-            /* Garante altura uniforme e distribuição do conteúdo */
-            display: flex; flex-direction: column; min-height: 450px;
-        }
-        .card::before { /* Top Highlight border */
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        }
-        .card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-5px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        /* Scrollbar */
+        .dashboard-grid::-webkit-scrollbar { width: 6px; }
+        .dashboard-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 
-        /* HEADER DO CARD REORGANIZADO */
-        .card-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
-        .meta-col { flex: 1; padding-right: 15px; }
-        .meta-col h3 { font-size: 1.1rem; font-weight: 500; color: #fff; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .meta-col .url { font-size: 0.75rem; color: #777; font-family: monospace; letter-spacing: 0.5px; }
-        
-        .actions-col { display: flex; align-items: center; gap: 10px; }
-        
-        /* Status Pill */
-        .status-pill {
-            padding: 6px 12px; border-radius: 30px; background: rgba(0,0,0,0.3);
-            display: flex; align-items: center; gap: 8px; font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+        /* --- ANALYTICS PANEL (CARD) --- */
+        .panel {
+            background: var(--glass-panel);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s, border-color 0.3s;
+            min-height: 420px;
+            animation: fadeIn 0.5s ease-out;
         }
-        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; }
-        .st-ok { color: var(--neon-green); border: 1px solid rgba(10, 255, 104, 0.15); }
-        .st-ok .pulse-dot { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
-        .st-warn { color: var(--neon-orange); border: 1px solid rgba(255, 145, 0, 0.15); }
-        .st-warn .pulse-dot { background: var(--neon-orange); }
-        .st-err { color: var(--neon-red); border: 1px solid rgba(255, 15, 75, 0.15); }
-        .st-err .pulse-dot { background: var(--neon-red); animation: pulseFast 1s infinite; }
+        .panel:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
 
-        /* Action Buttons (Modernos) */
-        .card-icon-btn {
-            width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--glass-border);
-            background: var(--glass-panel); color: #888; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: 0.3s;
-            font-size: 1rem;
+        /* Panel Header */
+        .panel-head {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            background: rgba(255,255,255,0.02);
         }
-        .card-icon-btn:hover { background: rgba(255,255,255,0.08); color: #fff; border-color: rgba(255,255,255,0.3); }
-        .card-icon-btn.settings:hover { color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); border-color: var(--neon-blue); }
-        .card-icon-btn.delete:hover { color: var(--neon-red); box-shadow: 0 0 15px rgba(255, 15, 75, 0.2); border-color: var(--neon-red); }
+        .head-info h3 { font-size: 1rem; font-weight: 600; color: #fff; letter-spacing: 0.5px; }
+        .head-info .url { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-top: 3px; }
 
-        /* Painéis de Métricas (Flutuantes) */
-        .metrics-deck {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px;
+        .head-actions { display: flex; align-items: center; gap: 10px; }
+        .status-badge {
+            font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px;
+            background: rgba(0,0,0,0.3); border: 1px solid transparent; letter-spacing: 1px;
         }
-        .metric-panel {
-            background: var(--glass-panel); border: 1px solid var(--glass-border);
-            padding: 15px; border-radius: 12px; display: flex; flex-direction: column;
-            transition: 0.3s;
-        }
-        .metric-panel:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
-        .metric-panel span { font-size: 0.65rem; color: #666; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px; }
-        .metric-panel b { font-size: 1.2rem; font-weight: 500; color: #fff; }
+        .btn-icon { background: transparent; border: none; color: #666; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover { color: var(--neon-red); }
 
-        /* Chart Area (Flexível) */
-        .chart-wrapper { 
-            flex: 1; /* Ocupa o espaço restante */
-            width: 100%; min-height: 180px; position: relative;
+        /* Status Colors */
+        .st-ok { color: var(--neon-green); border-color: rgba(10, 255, 104, 0.3); box-shadow: 0 0 10px rgba(10, 255, 104, 0.1); }
+        .st-warn { color: var(--neon-orange); border-color: rgba(255, 145, 0, 0.3); }
+        .st-err { color: var(--neon-red); border-color: rgba(255, 15, 75, 0.3); box-shadow: 0 0 10px rgba(255, 15, 75, 0.1); }
+
+        /* Panel Body */
+        .panel-body {
+            padding: 20px;
+            flex: 1;
+            display: grid;
+            /* Layout Grid Interno: 2 colunas (Gráfico Tempo maior, Pizza menor) */
+            grid-template-columns: 2fr 1fr; 
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+        }
+
+        /* KPI Row (Topo) */
+        .kpi-row {
+            grid-column: 1 / -1;
+            display: flex; gap: 40px;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding-bottom: 15px;
+        }
+        .kpi { display: flex; flex-direction: column; }
+        .kpi span { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .kpi b { font-size: 1.8rem; font-weight: 400; color: #fff; }
+
+        /* Chart Containers */
+        .chart-area {
+            position: relative; width: 100%; height: 200px;
+            border-right: 1px solid var(--glass-border); padding-right: 15px;
+        }
+        .chart-donut {
+            position: relative; width: 100%; height: 200px;
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Footer Chips */
-        .chips-container { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
-        .chip {
-            font-size: 0.7rem; padding: 6px 10px; border-radius: 6px; 
-            background: var(--glass-panel); border: 1px solid var(--glass-border);
-            color: #999; display: flex; gap: 6px; font-weight: 500;
+        /* --- MODALS (Dark Style) --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #0f0f13; border: 1px solid var(--glass-border); width: 450px; padding: 30px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
+        
+        .modal h2 { margin-bottom: 20px; color: #fff; font-weight: 400; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; color: var(--text-muted); font-size: 0.8rem; margin-bottom: 6px; }
+        .input-group input { 
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; outline: none;
         }
-        .chip b { color: #fff; font-weight: 700; }
-        .chip.bad { border-color: rgba(255, 15, 75, 0.3); color: var(--neon-red); background: rgba(255, 15, 75, 0.05); }
+        .input-group input:focus { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.05); }
 
-        /* --- MODALS & TOAST (Estilo mantido, funcionalidade igual) --- */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 1000; opacity: 0; pointer-events: none; transition: 0.4s var(--ease-out); display: flex; align-items: center; justify-content: center; }
-        .modal-overlay.active { opacity: 1; pointer-events: all; }
-        .modal { background: #0a0a0f; border: 1px solid var(--glass-border); width: 480px; padding: 35px; border-radius: 24px; box-shadow: 0 40px 80px rgba(0,0,0,0.7); transform: scale(0.92) translateY(20px); transition: 0.4s var(--ease-out); }
-        .modal-overlay.active .modal { transform: scale(1) translateY(0); }
-        .input-group { margin-bottom: 18px; }
-        .input-group label { display: block; color: #888; font-size: 0.8rem; margin-bottom: 8px; font-weight: 600; }
-        .input-group input { width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff; outline: none; transition: 0.3s; }
-        .input-group input:focus { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.02); }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 30px; }
+        .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
 
-        /* Chart Options (Modal) */
-        .chart-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 25px; }
-        .chart-opt-btn { background: var(--glass-panel); border: 1px solid var(--glass-border); padding: 18px; border-radius: 12px; cursor: pointer; color: #777; text-align: center; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        .chart-opt-btn:hover { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.2); }
-        .chart-opt-btn.selected { border-color: var(--neon-blue); color: var(--neon-blue); background: rgba(0, 243, 255, 0.03); box-shadow: 0 0 20px rgba(0, 243, 255, 0.05); }
-        .opt-icon { font-size: 1.8rem; }
+        /* Toast */
+        .toast {
+            position: fixed; bottom: 30px; right: 30px; background: #181820; border: 1px solid var(--glass-border);
+            color: #fff; padding: 15px 25px; border-radius: 8px; font-size: 0.9rem;
+            border-left: 4px solid var(--neon-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none; z-index: 2000;
+        }
 
-        .toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
-        .toast { background: #14141c; border: 1px solid rgba(255,255,255,0.08); color: #fff; padding: 14px 22px; border-radius: 10px; font-size: 0.9rem; animation: slideIn 0.4s var(--ease-out), fadeOut 0.5s 4s forwards; border-left: 4px solid var(--neon-blue); box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .toast.error { border-left-color: var(--neon-red); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(10, 255, 104, 0); } }
-        @keyframes pulseFast { 0% { box-shadow: 0 0 0 0 rgba(255, 15, 75, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(255, 15, 75, 0); } }
-        @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); pointer-events: none; } }
     </style>
 </head>
 <body>
 
-    <div class="app-shell">
-        <header>
-            <h1>Sentinel <b>NuCel 2.3</b></h1>
-            <div class="toolbar">
-                <button class="btn btn-glass" id="btnConfig" onclick="openModal('modalConfig')">⚙️ Config Global</button>
-                <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
-            </div>
-        </header>
+    <header>
+        <h1>Sentinel <b>AI Enterprise</b></h1>
+        <div class="toolbar">
+            <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Configurações</button>
+            <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
+        </div>
+    </header>
 
-        <div class="monitor-grid" id="grid">
-            <div id="empty-state" style="grid-column: 1/-1; text-align: center; margin-top: 100px; color: #555; display: flex; flex-direction: column; align-items: center;">
-                <div style="font-size: 3rem; margin-bottom: 20px; opacity: 0.3;">🛰️</div>
-                <h3 style="font-weight: 300; font-size: 1.5rem; color: #fff;">Dashboard Aguardando</h3>
-                <p style="font-size: 0.9rem; margin-top: 10px; max-width: 300px;">Adicione seu primeiro endpoint para iniciar o monitoramento em tempo real.</p>
-            </div>
+    <div class="dashboard-grid" id="grid">
+        <div id="empty-state" style="grid-column: 1/-1; text-align: center; margin-top: 100px; opacity: 0.5;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">📊</div>
+            <h3>Dashboard Vazio</h3>
+            <p>Adicione monitores para visualizar as métricas em tempo real.</p>
         </div>
     </div>
 
     <div class="modal-overlay" id="modalAdd">
         <div class="modal">
-            <h2 style="margin-bottom: 25px; font-weight: 400;">Novo Alvo</h2>
-            <div class="input-group"><label>Nome de Identificação</label><input type="text" id="inpName" placeholder="Ex: Microsserviço Pagamentos"></div>
-            <div class="input-group"><label>Endpoint URL</label><input type="url" id="inpUrl" placeholder="https://api.seu-sistema.com/health"></div>
-            <div class="input-group"><label>Intervalo de Checagem (Minutos)</label><input type="number" id="inpInterval" value="1" step="0.1" min="0.1"></div>
-            <div class="modal-actions">
+            <h2>Adicionar Monitor</h2>
+            <div class="input-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Backend Checkout"></div>
+            <div class="input-group"><label>Endpoint URL</label><input type="url" id="inpUrl" placeholder="https://api..."></div>
+            <div class="input-group"><label>Intervalo (Minutos)</label><input type="number" id="inpInterval" value="1" step="0.1"></div>
+            <div class="modal-footer">
                 <button class="btn btn-glass" onclick="closeModal('modalAdd')">Cancelar</button>
-                <button class="btn btn-primary" onclick="addMonitor()">Iniciar Monitoramento</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="modalChart">
-        <div class="modal">
-            <h2 style="margin-bottom: 10px; font-weight: 400;">Visualização de Dados</h2>
-            <p style="color:#777; font-size: 0.85rem;">Selecione o modo de exibição para este monitor.</p>
-            
-            <div class="chart-options">
-                <div class="chart-opt-btn" onclick="setChartType('line')" id="opt-line">
-                    <span class="opt-icon">📈</span><span>Linha do Tempo</span>
-                </div>
-                <div class="chart-opt-btn" onclick="setChartType('bar')" id="opt-bar">
-                    <span class="opt-icon">📊</span><span>Barras</span>
-                </div>
-                <div class="chart-opt-btn" onclick="setChartType('doughnut')" id="opt-doughnut">
-                    <span class="opt-icon">🍩</span><span>Distribuição (Rosca)</span>
-                </div>
-            </div>
-            <div class="modal-actions" style="margin-top: 30px;">
-                <button class="btn btn-glass" style="width: 100%; justify-content: center;" onclick="closeModal('modalChart')">Fechar</button>
+                <button class="btn btn-primary" onclick="addMonitor()">Salvar</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modalConfig">
         <div class="modal">
-            <h2 style="margin-bottom: 25px; font-weight: 400;">Integração EmailJS</h2>
-            <div class="input-group"><label>Service ID</label><input type="text" id="cfgService"></div>
+            <h2>Configurações de Alerta</h2>
+            <div class="input-group"><label>Service ID (EmailJS)</label><input type="text" id="cfgService"></div>
             <div class="input-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
             <div class="input-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
-            <div class="input-group"><label>Email de Destino para Alertas</label><input type="email" id="cfgDest"></div>
-            <div class="modal-actions">
+            <div class="input-group"><label>Email Destino</label><input type="email" id="cfgDest"></div>
+            <div class="modal-footer">
                 <button class="btn btn-glass" onclick="closeModal('modalConfig')">Cancelar</button>
-                <button class="btn btn-primary" onclick="saveConfig()">Salvar Credenciais</button>
+                <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
             </div>
         </div>
     </div>
 
-    <div class="toast-container" id="toastContainer"></div>
+    <div id="toast" class="toast"></div>
 
     <script>
-        // --- LOGIC CORE (Mesma lógica da V2.2, apenas adaptada ao novo DOM) ---
+        // --- LOGIC CORE ---
         const ALERT_COOLDOWN_MS = 15 * 60 * 1000;
-        const WINDOW_ANALYSIS_MS = 5 * 60 * 1000; 
-        const FAILURE_THRESHOLD = 0.25; 
-
-        let monitors = JSON.parse(localStorage.getItem('sentinel_v2_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_v2_config')) || {
+        
+        let monitors = JSON.parse(localStorage.getItem('sentinel_dark_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_dark_config')) || {
             serviceId: '', templateId: '', publicKey: '', destination: ''
         };
         let charts = {};
-        let currentEditId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (config.publicKey) emailjs.init(config.publicKey);
-            updateConfigButton();
             renderAll();
-            setInterval(monitorLoop, 1000);
+            setInterval(monitorLoop, 1500);
         });
 
+        // --- ENGINE ---
         function monitorLoop() {
             const now = Date.now();
             monitors.forEach(m => {
@@ -287,200 +266,200 @@
         async function pingTarget(m) {
             m.lastCheck = Date.now();
             const result = await simulateNetwork(m);
-            
-            m.history.push({ x: m.lastCheck, y: result.latency, code: result.code });
-            if(m.history.length > 50) m.history.shift();
 
-            if(!m.stats) m.stats = {};
-            if(!m.stats[result.code]) m.stats[result.code] = 0;
+            m.history.push({ x: m.lastCheck, y: result.latency, code: result.code });
+            if (m.history.length > 50) m.history.shift();
+
+            if (!m.stats) m.stats = {};
+            if (!m.stats[result.code]) m.stats[result.code] = 0;
             m.stats[result.code]++;
+            
+            m.totalCalls = (m.totalCalls || 0) + 1;
 
             if (result.code >= 400) m.consecutiveErrors = (m.consecutiveErrors || 0) + 1;
             else m.consecutiveErrors = 0;
 
             saveData();
-            updateCard(m, result);
-            checkSmartAlerts(m, result);
+            updatePanel(m, result);
+            checkAlerts(m, result);
         }
 
-        async function checkSmartAlerts(m, result) {
-            const now = Date.now();
-            const lastAlert = m.lastAlert || 0;
-            if (now - lastAlert < ALERT_COOLDOWN_MS) return;
-            
-            let triggerReason = null;
-            if (m.consecutiveErrors >= 5) triggerReason = `CRÍTICO: 5 falhas consecutivas.`;
+        // --- RENDER (DARK KIBANA STYLE) ---
+        function renderAll() {
+            const grid = document.getElementById('grid');
+            if (monitors.length === 0) { document.getElementById('empty-state').style.display = 'block'; return; }
+            document.getElementById('empty-state').style.display = 'none';
+            monitors.forEach(m => { if(!document.getElementById(`panel-${m.id}`)) createPanelDOM(m); });
+        }
 
-            if (!triggerReason) {
-                const recentPoints = m.history.filter(h => h.x > (now - WINDOW_ANALYSIS_MS));
-                if (recentPoints.length >= 4) {
-                    const errorCount = recentPoints.filter(h => h.code >= 400).length;
-                    if ((errorCount / recentPoints.length) >= FAILURE_THRESHOLD) {
-                        triggerReason = `ALERTA: Alta taxa de falha (25%+)`;
+        function createPanelDOM(m) {
+            const grid = document.getElementById('grid');
+            const el = document.createElement('div');
+            el.className = 'panel';
+            el.id = `panel-${m.id}`;
+            
+            el.innerHTML = `
+                <div class="panel-head">
+                    <div class="head-info">
+                        <h3>${m.name}</h3>
+                        <div class="url">${m.url}</div>
+                    </div>
+                    <div class="head-actions">
+                        <div id="badge-${m.id}" class="status-badge st-ok">WAITING</div>
+                        <button class="btn-icon" onclick="removeMonitor(${m.id})">×</button>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <div class="kpi-row">
+                        <div class="kpi">
+                            <span>Total Requests</span>
+                            <b id="val-total-${m.id}">0</b>
+                        </div>
+                        <div class="kpi">
+                            <span>Latency (ms)</span>
+                            <b id="val-lat-${m.id}">--</b>
+                        </div>
+                        <div class="kpi">
+                            <span>Status</span>
+                            <b id="val-code-${m.id}" style="color:var(--text-muted)">--</b>
+                        </div>
+                    </div>
+
+                    <div class="chart-area">
+                        <canvas id="chart-time-${m.id}"></canvas>
+                    </div>
+                    <div class="chart-donut">
+                        <canvas id="chart-pie-${m.id}"></canvas>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(el);
+            initCharts(m);
+            if(m.history.length > 0) updatePanel(m, {code: m.history[m.history.length-1].code, latency: m.history[m.history.length-1].y});
+        }
+
+        function updatePanel(m, result) {
+            // KPIs
+            document.getElementById(`val-total-${m.id}`).innerText = m.totalCalls || 0;
+            document.getElementById(`val-lat-${m.id}`).innerText = result.latency;
+            const codeEl = document.getElementById(`val-code-${m.id}`);
+            codeEl.innerText = result.code;
+            codeEl.style.color = result.code >= 400 ? 'var(--neon-red)' : 'var(--neon-blue)';
+
+            // Badge
+            const badge = document.getElementById(`badge-${m.id}`);
+            if (result.code >= 500) { badge.className = 'status-badge st-err'; badge.innerText = 'CRITICAL'; }
+            else if (result.code >= 400) { badge.className = 'status-badge st-err'; badge.innerText = 'ERROR'; }
+            else { badge.className = 'status-badge st-ok'; badge.innerText = 'HEALTHY'; }
+
+            // Charts
+            if(charts[m.id]) {
+                const cTime = charts[m.id].time;
+                const cPie = charts[m.id].pie;
+
+                // Time Series (Area Chart)
+                cTime.data.datasets[0].data = m.history;
+                // Cor dinâmica: Vermelho se erro, Azul Neon se ok
+                const mainColor = result.code >= 400 ? '#ff0f4b' : '#00f3ff';
+                const fillColor = result.code >= 400 ? 'rgba(255, 15, 75, 0.2)' : 'rgba(0, 243, 255, 0.15)';
+                
+                cTime.data.datasets[0].borderColor = mainColor;
+                cTime.data.datasets[0].backgroundColor = fillColor;
+                cTime.update('none');
+
+                // Pie Chart
+                const codes = Object.keys(m.stats).sort();
+                cPie.data.labels = codes;
+                cPie.data.datasets[0].data = codes.map(c => m.stats[c]);
+                cPie.data.datasets[0].backgroundColor = codes.map(c => {
+                    const code = parseInt(c);
+                    if (code >= 500) return '#ff0f4b';
+                    if (code >= 400) return '#ff9100';
+                    return '#0aff68';
+                });
+                cPie.update('none');
+            }
+        }
+
+        function initCharts(m) {
+            // Configurações Globais Dark Chart.js
+            Chart.defaults.color = '#8b9bb4';
+            Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+
+            // 1. Time Chart (Area)
+            const ctxTime = document.getElementById(`chart-time-${m.id}`).getContext('2d');
+            const timeChart = new Chart(ctxTime, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        data: m.history,
+                        borderColor: '#00f3ff',
+                        backgroundColor: 'rgba(0, 243, 255, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: 'origin',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, animation: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { display: true, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
-            }
+            });
 
-            if (triggerReason && config.serviceId) {
-                m.lastAlert = now;
-                saveData();
-                sendEmailAlert(m, triggerReason, result);
-            }
+            // 2. Pie Chart
+            const ctxPie = document.getElementById(`chart-pie-${m.id}`).getContext('2d');
+            const pieChart = new Chart(ctxPie, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, animation: false,
+                    plugins: { 
+                        legend: { position: 'right', labels: { boxWidth: 8, font: {size: 10} } } 
+                    },
+                    cutout: '65%'
+                }
+            });
+
+            charts[m.id] = { time: timeChart, pie: pieChart };
         }
 
-        async function sendEmailAlert(m, reason, result) {
-            showToast(`Disparando alerta: ${m.name}`, 'error');
-            try {
-                await emailjs.send(config.serviceId, config.templateId, {
-                    api_name: m.name, api_url: m.url, message: reason, last_code: result.code, to_email: config.destination
-                });
-                showToast('Alerta enviado com sucesso!', 'success');
-            } catch (e) { console.error(e); }
-        }
-
+        // --- NETWORK SIM & ALERTS ---
         function simulateNetwork(m) {
             return new Promise(resolve => {
                 const rand = Math.random();
                 let code = 200;
-                let latency = Math.floor(Math.random() * 50) + 10;
-                if (rand > 0.85) { code = Math.random() > 0.5 ? 500 : 429; latency += 150; }
-                setTimeout(() => resolve({ code, latency }), 300);
-            });
-        }
-
-        function openChartModal(id) {
-            currentEditId = id;
-            const m = monitors.find(x => x.id === id);
-            document.querySelectorAll('.chart-opt-btn').forEach(b => b.classList.remove('selected'));
-            const currentType = m.chartType || 'line';
-            document.getElementById(`opt-${currentType}`).classList.add('selected');
-            openModal('modalChart');
-        }
-
-        function setChartType(type) {
-            if(!currentEditId) return;
-            const m = monitors.find(x => x.id === currentEditId);
-            if(m) {
-                m.chartType = type;
-                saveData();
-                if(charts[m.id]) { charts[m.id].destroy(); delete charts[m.id]; }
-                initChart(m);
-                if(m.history.length > 0) updateCard(m, {code: m.history[m.history.length-1].code, latency: m.history[m.history.length-1].y});
-                document.querySelectorAll('.chart-opt-btn').forEach(b => b.classList.remove('selected'));
-                document.getElementById(`opt-${type}`).classList.add('selected');
-                showToast(`Visualização alterada para ${type}`, 'success');
-                closeModal('modalChart');
-            }
-        }
-
-        // --- RENDER & DOM (NOVO LAYOUT) ---
-        function renderAll() {
-            const grid = document.getElementById('grid');
-            if (monitors.length === 0) { document.getElementById('empty-state').style.display = 'flex'; return; }
-            document.getElementById('empty-state').style.display = 'none';
-            monitors.forEach(m => { if(!document.getElementById(`card-${m.id}`)) createCardDOM(m); });
-        }
-
-        function createCardDOM(m) {
-            const grid = document.getElementById('grid');
-            const el = document.createElement('div');
-            el.className = 'card';
-            el.id = `card-${m.id}`;
-            // NOVO LAYOUT DO CARD
-            el.innerHTML = `
-                <div class="card-header-row">
-                    <div class="meta-col">
-                        <h3>${m.name}</h3>
-                        <div class="url">${m.url}</div>
-                    </div>
-                    <div class="actions-col">
-                        <div class="status-pill st-warn" id="pill-${m.id}">
-                            <div class="pulse-dot"></div><span id="txt-${m.id}">...</span>
-                        </div>
-                        <button class="card-icon-btn settings" onclick="openChartModal(${m.id})" title="Visualização">⚙️</button>
-                        <button class="card-icon-btn delete" onclick="removeMonitor(${m.id})" title="Remover">×</button>
-                    </div>
-                </div>
-
-                <div class="metrics-deck">
-                    <div class="metric-panel"><span>LATÊNCIA</span><b id="lat-${m.id}">--</b></div>
-                    <div class="metric-panel"><span>ERROS SEQ.</span><b id="seq-${m.id}">0</b></div>
-                    <div class="metric-panel"><span>CÓDIGO</span><b id="code-${m.id}">--</b></div>
-                </div>
-
-                <div class="chart-wrapper"><canvas id="chart-${m.id}"></canvas></div>
-                <div class="chips-container" id="chips-${m.id}"></div>
-            `;
-            grid.appendChild(el);
-            initChart(m);
-            if(m.history.length > 0) updateCard(m, m.history[m.history.length-1]);
-        }
-
-        function updateCard(m, result) {
-            const pill = document.getElementById(`pill-${m.id}`);
-            const txt = document.getElementById(`txt-${m.id}`);
-            
-            if (result.code >= 500) { pill.className = 'status-pill st-err'; txt.innerText = 'CRÍTICO'; } 
-            else if (result.code >= 400) { pill.className = 'status-pill st-warn'; txt.innerText = 'ATENÇÃO'; } 
-            else { pill.className = 'status-pill st-ok'; txt.innerText = 'ONLINE'; }
-
-            document.getElementById(`lat-${m.id}`).innerText = result.latency + 'ms';
-            document.getElementById(`code-${m.id}`).innerText = result.code;
-            const seqEl = document.getElementById(`seq-${m.id}`);
-            seqEl.innerText = m.consecutiveErrors;
-            seqEl.style.color = m.consecutiveErrors > 0 ? 'var(--neon-red)' : '#fff';
-
-            const chips = document.getElementById(`chips-${m.id}`);
-            chips.innerHTML = '';
-            Object.keys(m.stats).sort().forEach(code => {
-                const isBad = parseInt(code) >= 400;
-                chips.innerHTML += `<div class="chip ${isBad?'bad':''}"><b style="color:${isBad?'var(--neon-red)':'#fff'}">${code}</b> ${m.stats[code]}x</div>`;
-            });
-
-            if(charts[m.id]) {
-                const chart = charts[m.id];
-                const type = m.chartType || 'line';
-                if (type === 'doughnut') {
-                    const codes = Object.keys(m.stats).sort();
-                    chart.data.labels = codes;
-                    chart.data.datasets[0].data = codes.map(c => m.stats[c]);
-                    chart.data.datasets[0].backgroundColor = codes.map(c => parseInt(c)>=500?'#ff0f4b':(parseInt(c)>=400?'#ff9100':'#0aff68'));
-                } else {
-                    chart.data.datasets[0].data = m.history;
+                let latency = Math.floor(Math.random() * 80) + 20;
+                if (rand > 0.85) { 
+                    code = Math.random() > 0.6 ? 500 : 429; 
+                    latency += 250; 
                 }
-                chart.update('none');
-            }
+                setTimeout(() => resolve({ code, latency }), 200);
+            });
         }
 
-        function initChart(m) {
-            const ctx = document.getElementById(`chart-${m.id}`).getContext('2d');
-            const type = m.chartType || 'line';
-            let config = {};
-
-            if (type === 'doughnut') {
-                config = {
-                    type: 'doughnut',
-                    data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, animation: false,
-                        // Legenda na parte inferior para economizar espaço lateral
-                        plugins: { legend: { position: 'bottom', labels: { color: '#888', font: {size:10}, boxWidth: 10, padding: 15 } } },
-                        cutout: '65%', layout: { padding: { top: 10, bottom: 10 } }
-                    }
-                };
-            } else {
-                const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(0, 243, 255, 0.2)'); gradient.addColorStop(1, 'rgba(0, 243, 255, 0)');
-                config = {
-                    type: type,
-                    data: { datasets: [{
-                        data: m.history, borderColor: '#00f3ff', backgroundColor: type === 'bar' ? '#00f3ff' : gradient,
-                        borderWidth: 2, pointRadius: 0, fill: true, tension: 0.4, barThickness: 6
-                    }]},
-                    options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
-                };
+        async function checkAlerts(m, result) {
+            const now = Date.now();
+            if (now - (m.lastAlert||0) < ALERT_COOLDOWN_MS) return;
+            
+            let reason = null;
+            if (m.consecutiveErrors >= 5) reason = `Falha contínua detectada (5x Erros)`;
+            
+            if (reason && config.serviceId) {
+                m.lastAlert = now;
+                saveData();
+                try {
+                    await emailjs.send(config.serviceId, config.templateId, {
+                        api_name: m.name, message: reason, last_code: result.code, to_email: config.destination
+                    });
+                    showToast('Alerta enviado!', 'success');
+                } catch(e) { console.error(e); }
             }
-            charts[m.id] = new Chart(ctx, config);
         }
 
         // --- MANAGERS ---
@@ -488,47 +467,53 @@
             const name = document.getElementById('inpName').value;
             const url = document.getElementById('inpUrl').value;
             const interval = document.getElementById('inpInterval').value;
-            if(name && url) {
+            if (name && url) {
                 monitors.push({
-                    id: Date.now(), name, url, interval: parseFloat(interval), chartType: 'line',
-                    lastCheck: 0, consecutiveErrors: 0, lastAlert: 0, history: [], stats: {}
+                    id: Date.now(), name, url, interval: parseFloat(interval),
+                    lastCheck: 0, consecutiveErrors: 0, lastAlert: 0, history: [], stats: {}, totalCalls: 0
                 });
                 saveData(); renderAll(); closeModal('modalAdd');
             }
         }
+
         function removeMonitor(id) {
-            if(confirm('Tem certeza que deseja remover este monitor?')) {
+            if(confirm('Remover painel?')) {
                 monitors = monitors.filter(m => m.id !== id);
-                if(charts[id]) charts[id].destroy();
-                document.getElementById(`card-${id}`).remove();
+                if(charts[id]) { charts[id].time.destroy(); charts[id].pie.destroy(); delete charts[id]; }
+                document.getElementById(`panel-${id}`).remove();
                 saveData();
-                if(monitors.length===0) renderAll();
+                if(monitors.length === 0) renderAll();
             }
         }
+
         function saveConfig() {
             config.serviceId = document.getElementById('cfgService').value;
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_v2_config', JSON.stringify(config));
+            localStorage.setItem('sentinel_dark_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
-            closeModal('modalConfig'); updateConfigButton(); showToast('Configurações salvas!', 'success');
+            closeModal('modalConfig'); showToast('Salvo com sucesso!', 'success');
         }
-        function saveData() { localStorage.setItem('sentinel_v2_monitors', JSON.stringify(monitors)); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') loadCfg(); }
+
+        function saveData() { localStorage.setItem('sentinel_dark_monitors', JSON.stringify(monitors)); }
+
+        // --- UI UTILS ---
+        function openModal(id) { document.getElementById(id).classList.add('active'); 
+            if(id === 'modalConfig') {
+                document.getElementById('cfgService').value = config.serviceId;
+                document.getElementById('cfgTemplate').value = config.templateId;
+                document.getElementById('cfgKey').value = config.publicKey;
+                document.getElementById('cfgDest').value = config.destination;
+            }
+        }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        function loadCfg() {
-            document.getElementById('cfgService').value = config.serviceId;
-            document.getElementById('cfgTemplate').value = config.templateId;
-            document.getElementById('cfgKey').value = config.publicKey;
-            document.getElementById('cfgDest').value = config.destination;
-        }
-        function updateConfigButton() { if(config.publicKey) document.getElementById('btnConfig').classList.add('active'); }
         function showToast(msg, type) {
-            const t = document.createElement('div'); t.className = `toast ${type}`; t.innerText = msg;
-            document.getElementById('toastContainer').appendChild(t);
-            setTimeout(() => t.remove(), 4000);
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.display = 'block';
+            setTimeout(() => { t.style.display = 'none'; }, 3000);
         }
+
     </script>
 </body>
 </html>

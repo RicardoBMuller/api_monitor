@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel MVNO Nubank | OpsCenter</title>
+    <title>Sentinel MVNO Nubank | APIs</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -126,7 +126,7 @@
         .tile-footer { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto; }
         .tile-badge { font-size: 0.7rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: rgba(0,0,0,0.3); border: 1px solid transparent; }
 
-        /* --- DETAIL MODAL --- */
+        /* --- DETAIL MODAL (CORRIGIDO) --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
@@ -143,32 +143,27 @@
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
-        /* HEADER CORRIGIDO (ALINHAMENTO PERFEITO) */
+        /* HEADER CORRIGIDO - LIMPO E ALINHADO */
         .detail-head {
             padding: 30px 40px; border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: flex-start; 
-            background: rgba(255,255,255,0.01);
+            display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.01);
         }
         
         .title-block {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            border-left: 4px solid var(--neon-blue); /* Barra Azul */
+            padding-left: 20px; /* Espaçamento */
         }
 
-        /* Barra azul apenas no nome */
         .dh-title { 
             font-size: 1.8rem; font-weight: 700; color: #fff; 
-            line-height: 1; 
-            border-left: 4px solid var(--neon-blue);
-            padding-left: 20px; 
+            line-height: 1.2; margin-bottom: 5px; 
         }
         
-        /* URL indentada para alinhar visualmente */
         .dh-url { 
             color: var(--text-muted); font-size: 0.85rem; 
-            font-family: var(--font-code); opacity: 0.8;
-            padding-left: 24px; /* 4px border + 20px padding do titulo */
+            font-family: var(--font-code); opacity: 0.8; 
         }
 
         .dh-actions { display: flex; gap: 15px; }
@@ -233,10 +228,10 @@
         <header>
             <div class="brand">
                 <div class="pulse"></div>
-                Sentinel <b>MVNO Nubank</b>
+                Sentinel <b>MVNO Nubanck</b>
             </div>
             <div class="toolbar">
-                <button class="btn btn-glass" onclick="openModal('modalConfig')">Configurar E-mail</button>
+                <button class="btn btn-glass" onclick="openModal('modalConfig')">Configuração de E-mail</button>
                 <button class="btn btn-primary" onclick="openModal('modalAdd')">Adicionar Nova Monitoração</button>
             </div>
         </header>
@@ -246,7 +241,7 @@
         <div class="empty-placeholder" id="emptyState" style="display: none;">
             <div style="font-size: 4rem; margin-bottom: 15px;">📡</div>
             <h3>Dashboard Vazio</h3>
-            <p>Adicione uma API para monitorar.</p>
+            <p>Adicione um serviço para monitorar.</p>
         </div>
     </main>
 
@@ -292,7 +287,7 @@
     <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
             <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Nova Monitoração</h2>
-            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Checkout API"></div>
+            <div class="form-group"><label>Nome da API</label><input type="text" id="inpName" placeholder="Ex: Checkout API"></div>
             <div class="form-group"><label>URL Endpoint</label><input type="url" id="inpUrl" placeholder="https://..."></div>
             <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
             <div class="modal-actions">
@@ -335,10 +330,11 @@
         // --- ENGINE ---
         function engineTick() {
             const now = Date.now();
+            // 1. Ping Check
             monitors.forEach(m => {
                 if (now - (m.lastCheck || 0) >= (m.interval * 1000)) runCheck(m);
             });
-            // Chart Slide
+            // 2. Smooth Chart Slide
             if (activeMonitorId && mainChartInst) {
                 mainChartInst.options.scales.x.min = now - (60 * 1000);
                 mainChartInst.options.scales.x.max = now;
@@ -368,6 +364,7 @@
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
+        // --- ALERTS ---
         function checkAlerts(m) {
             const now = Date.now();
             if (now - (m.lastAlert || 0) < 5 * 60000) return;
@@ -408,6 +405,7 @@
             });
         }
 
+        // --- TILES ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             const empty = document.getElementById('emptyState');
@@ -418,6 +416,11 @@
                 if(!el) { el = document.createElement('div'); el.id = `tile-${m.id}`; el.onclick = () => openDetail(m.id); grid.appendChild(el); }
                 updateTileElement(el, m);
             });
+        }
+
+        function updateTile(m) {
+            const el = document.getElementById(`tile-${m.id}`);
+            if(el) updateTileElement(el, m);
         }
 
         function updateTileElement(el, m) {
@@ -453,6 +456,7 @@
             document.getElementById('detailOverlay').classList.add('active');
             document.getElementById('detailName').innerText = m.name;
             document.getElementById('detailUrl').innerText = m.url;
+            // Removed interval from header per layout change request
             initDetailCharts(m);
             updateDetailView(m);
         }
@@ -474,7 +478,10 @@
                 logList.innerHTML += `<div class="log-row"><span style="color:#666">${new Date(h.x).toLocaleTimeString()}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
-            if(mainChartInst) { mainChartInst.data.datasets[0].data = m.history; }
+            if(mainChartInst) {
+                mainChartInst.data.datasets[0].data = m.history;
+                // Sliding window handled in engineTick
+            }
             if(donutChartInst) {
                 const codes = Object.keys(m.stats); donutChartInst.data.labels = codes;
                 donutChartInst.data.datasets[0].data = codes.map(c => m.stats[c]);
@@ -507,7 +514,10 @@
                     responsive: true, maintainAspectRatio: false, animation: false,
                     plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
                     scales: {
-                        x: { type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } }, grid: { display: false }, ticks: { color: '#666', maxRotation: 0, autoSkip: true } },
+                        x: { 
+                            type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } },
+                            grid: { display: false }, ticks: { color: '#666', maxRotation: 0, autoSkip: true }
+                        },
                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
@@ -521,6 +531,7 @@
             });
         }
 
+        // --- MANAGERS ---
         function addMonitorSafe() {
             try {
                 const name = document.getElementById('inpName').value; const url = document.getElementById('inpUrl').value; let interval = parseInt(document.getElementById('inpInterval').value);

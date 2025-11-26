@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | V7.1 Polished</title>
+    <title>Sentinel OpsCenter | V8 Live Flow</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -13,16 +13,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- TEMA --- */
+        /* --- TEMA DARK NEON --- */
         :root {
             --bg-deep: #050508;
-            --glass-panel: rgba(20, 20, 30, 0.6);
-            --glass-modal: #0f1015;
+            --glass-panel: rgba(20, 20, 30, 0.65);
+            --glass-modal: #0b0c12; 
             --glass-border: rgba(255, 255, 255, 0.08);
             
             --text-main: #ffffff;
             --text-muted: #8b9bb4;
 
+            /* Palette */
             --neon-blue: #00f3ff;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
@@ -30,21 +31,24 @@
 
             --font-main: 'Outfit', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
+            
+            --ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
 
-        /* --- SCROLLBAR CUSTOMIZADA (HARMONIOSA) --- */
+        /* Scrollbar Discreta */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #0a0b10; }
+        ::-webkit-scrollbar-track { background: #08080c; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
         body {
             background-color: var(--bg-deep);
-            background: linear-gradient(-45deg, #050508, #161625, #0a0514, #020205);
+            /* Animação de Fundo Suave */
+            background: linear-gradient(-45deg, #050508, #13132b, #0f0518, #000000);
             background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            animation: gradientBG 20s ease infinite;
             color: var(--text-main);
             height: 100vh;
             display: flex;
@@ -57,147 +61,170 @@
 
         /* --- SIDEBAR --- */
         aside.sidebar {
-            width: 300px; background: rgba(10, 11, 16, 0.9); backdrop-filter: blur(10px);
-            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 20;
+            width: 300px;
+            background: rgba(10, 12, 18, 0.9);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; flex-shrink: 0; z-index: 20;
         }
         .sidebar-header {
-            height: 60px; display: flex; align-items: center; padding: 0 20px;
-            border-bottom: 1px solid var(--glass-border); font-weight: 600; color: var(--text-muted); font-size: 0.85rem;
+            height: 70px; display: flex; align-items: center; padding: 0 25px;
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 600; color: var(--text-muted); font-size: 0.8rem;
             text-transform: uppercase; letter-spacing: 1px;
         }
         .alert-feed { flex: 1; overflow-y: auto; padding: 0; }
         .alert-item {
-            padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.03);
-            animation: slideInLeft 0.4s ease-out; border-left: 3px solid transparent;
+            padding: 18px 25px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            animation: slideInLeft 0.4s var(--ease-smooth); border-left: 3px solid transparent;
+            transition: background 0.2s;
         }
-        .alert-item:hover { background: rgba(255,255,255,0.02); }
+        .alert-item:hover { background: rgba(255,255,255,0.03); }
         .alert-item.crit { border-left-color: var(--neon-red); }
-        .alert-time { font-family: var(--font-code); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; }
-        .alert-title { font-weight: 700; color: #fff; margin-bottom: 2px; font-size: 0.9rem; }
-        .alert-msg { font-size: 0.8rem; color: var(--neon-red); }
+        .alert-time { font-family: var(--font-code); font-size: 0.7rem; color: var(--text-muted); margin-bottom: 4px; opacity: 0.7; }
+        .alert-title { font-weight: 600; color: #fff; margin-bottom: 3px; font-size: 0.9rem; }
+        .alert-msg { font-size: 0.8rem; color: var(--neon-red); font-weight: 500; }
 
-        /* --- MAIN --- */
-        main.content-area { flex: 1; display: flex; flex-direction: column; position: relative; }
+        /* --- MAIN AREA --- */
+        main.content-area {
+            flex: 1; display: flex; flex-direction: column; position: relative;
+        }
         
         header {
-            height: 60px; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 25px; border-bottom: 1px solid var(--glass-border);
-            background: rgba(5, 5, 8, 0.4); backdrop-filter: blur(10px);
+            height: 70px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 35px; border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 8, 0.5); backdrop-filter: blur(10px);
         }
-        .brand { font-size: 1.3rem; letter-spacing: 1px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
-        .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+        .brand { font-size: 1.5rem; letter-spacing: 0.5px; font-weight: 300; display: flex; align-items: center; gap: 12px; }
+        .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 20px rgba(0, 243, 255, 0.3); }
         .pulse { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
-        .toolbar { display: flex; gap: 10px; }
-        .btn { border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: 0.3s; }
+        
+        .toolbar { display: flex; gap: 15px; }
+        .btn { border: none; padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.3s var(--ease-smooth); }
         .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
-        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; }
-        .btn-primary:hover { box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); transform: translateY(-1px); }
+        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(0, 243, 255, 0.4); }
 
-        /* --- DASHBOARD TILES --- */
+        /* --- DASHBOARD GRID --- */
         .dashboard-grid {
-            flex: 1; padding: 25px; overflow-y: auto; display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); grid-auto-rows: 150px;
-            gap: 15px; align-content: start;
+            flex: 1; padding: 35px; overflow-y: auto; display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+            grid-auto-rows: 170px; /* Altura fixa */
+            gap: 25px; align-content: start;
         }
-        .monitor-tile {
-            background: var(--glass-panel); backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border); border-left: 3px solid var(--glass-border);
-            border-radius: 12px; padding: 18px; cursor: pointer; transition: all 0.2s ease;
-            display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;
-        }
-        .monitor-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.15); }
-        .tile-ok { border-left-color: var(--neon-green); } .tile-warn { border-left-color: var(--neon-orange); } .tile-crit { border-left-color: var(--neon-red); }
-        
-        .tile-head { margin-bottom: 5px; }
-        .tile-name { font-size: 1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .tile-url { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        .tile-val-big { font-size: 2rem; font-weight: 700; color: #fff; font-family: var(--font-code); line-height: 1; }
-        .tile-unit { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
-        
-        .tile-footer { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto; }
-        .tile-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); border: 1px solid transparent; }
 
-        /* --- DETAIL MODAL (Compact & Responsive) --- */
+        .monitor-tile {
+            background: var(--glass-panel); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-left: 4px solid var(--glass-border);
+            border-radius: 16px; padding: 25px; cursor: pointer;
+            transition: all 0.3s var(--ease-smooth);
+            position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .monitor-tile:hover { transform: translateY(-5px) scale(1.01); box-shadow: 0 15px 40px rgba(0,0,0,0.6); border-top-color: rgba(255,255,255,0.2); }
+        
+        .tile-ok { border-left-color: var(--neon-green); } 
+        .tile-warn { border-left-color: var(--neon-orange); } 
+        .tile-crit { border-left-color: var(--neon-red); }
+
+        .tile-head { margin-bottom: 10px; }
+        .tile-name { font-size: 1.1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
+        .tile-url { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .tile-body { display: flex; align-items: baseline; gap: 6px; }
+        .tile-val-big { font-size: 2.4rem; font-weight: 700; color: #fff; font-family: var(--font-code); line-height: 1; }
+        .tile-unit { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
+
+        .tile-footer { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto; }
+        .tile-badge { 
+            font-size: 0.7rem; padding: 5px 12px; border-radius: 20px; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 1px; 
+            background: rgba(0,0,0,0.3); border: 1px solid transparent;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* --- DETAIL MODAL (LIVE) --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
-            z-index: 100; opacity: 0; pointer-events: none; transition: 0.2s;
+            background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);
+            z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
         .overlay-backdrop.active { opacity: 1; pointer-events: all; }
 
         .detail-panel {
-            width: 95%; max-width: 1200px; max-height: 90vh; /* Limita altura */
-            background: var(--glass-modal); border: 1px solid var(--glass-border); border-radius: 16px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9); display: flex; flex-direction: column;
-            transform: scale(0.98); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            width: 96%; max-width: 1400px; height: 92vh;
+            background: var(--glass-modal); border: 1px solid var(--glass-border); border-radius: 20px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.95); display: flex; flex-direction: column;
+            transform: scale(0.96); transition: 0.4s var(--ease-smooth);
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
         .detail-head {
-            padding: 15px 25px; border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);
-            flex-shrink: 0;
+            padding: 25px 40px; border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.01);
         }
-        .dh-info h2 { font-size: 1.4rem; font-weight: 600; color: #fff; margin-bottom: 2px; }
-        .dh-meta { display: flex; gap: 15px; color: var(--text-muted); font-size: 0.8rem; font-family: var(--font-code); }
-        .dh-actions { display: flex; gap: 10px; }
+        .dh-info h2 { font-size: 1.8rem; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
+        .dh-actions { display: flex; gap: 15px; }
 
-        /* Grid mais compacto */
         .detail-body {
-            flex: 1; padding: 20px; overflow-y: auto; /* Scroll interno se precisar */
-            display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 20px;
+            flex: 1; padding: 30px 40px; overflow-y: auto;
+            display: grid; 
+            grid-template-columns: 3fr 1fr; /* Layout 3:1 */
+            grid-template-rows: auto 1fr;
+            gap: 30px;
         }
 
-        .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; padding: 15px; }
-        .kpi-card label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 5px; }
-        .kpi-card .val { font-size: 1.6rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
+        /* KPIs */
+        .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .kpi-card { background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
+        .kpi-card label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; letter-spacing: 1px; }
+        .kpi-card .val { font-size: 2.2rem; font-weight: 600; font-family: var(--font-code); color: #fff; transition: color 0.3s; }
 
+        /* Charts */
         .main-chart-box {
-            background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px;
-            height: 320px; /* Altura fixa para evitar estourar */
-            display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 16px; padding: 25px;
+            min-height: 400px; display: flex; flex-direction: column; position: relative;
         }
         .chart-fill { flex: 1; width: 100%; min-height: 0; position: relative; }
 
-        .sidebar-col { display: flex; flex-direction: column; gap: 15px; height: 100%; }
-        .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; height: 200px; display: flex; justify-content: center; flex-shrink: 0;}
+        .sidebar-col { display: flex; flex-direction: column; gap: 25px; height: 100%; }
+        .donut-box { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; height: 250px; display: flex; justify-content: center; align-items: center; }
         
         .log-box {
-            flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px;
-            font-family: var(--font-code); font-size: 0.8rem; overflow: hidden; display: flex; flex-direction: column;
-            min-height: 150px; /* Garante tamanho minimo */
+            flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px;
+            font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column;
         }
         .log-list { overflow-y: auto; flex: 1; padding-right: 5px; }
         .log-row { 
-            display: flex; justify-content: space-between; padding: 6px 0; 
-            border-bottom: 1px dashed rgba(255,255,255,0.05); animation: fadeInLog 0.3s ease-out;
+            display: flex; justify-content: space-between; padding: 10px 0; 
+            border-bottom: 1px dashed rgba(255,255,255,0.05); animation: fadeInLog 0.4s ease-out;
         }
+        
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
-        .section-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 8px; }
+        .section-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 15px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; letter-spacing: 1px; }
 
         /* --- FORMS --- */
-        .modal-form { background: #121218; width: 400px; padding: 30px; border-radius: 16px; border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
-        .form-group input { width: 100%; padding: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s; }
+        .modal-form { background: #15151c; width: 450px; padding: 40px; border-radius: 20px; border: 1px solid var(--glass-border); box-shadow: 0 40px 80px rgba(0,0,0,0.9); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+        .form-group input { width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s; }
         .form-group input:focus { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.05); }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
         .empty-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-muted); opacity: 0.5; }
 
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(10, 255, 104, 0); } }
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes fadeInLog { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeInLog { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
     <aside class="sidebar">
-        <div class="sidebar-header">Event Log</div>
+        <div class="sidebar-header">Event History</div>
         <div class="alert-feed" id="alertFeed">
-            <div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Sem alertas</div>
+            <div style="padding:25px; font-size:0.8rem; color:#555; text-align:center;">Monitoramento Limpo</div>
         </div>
     </aside>
 
@@ -216,9 +243,9 @@
         <div class="dashboard-grid" id="tileGrid"></div>
         
         <div class="empty-placeholder" id="emptyState" style="display: none;">
-            <div style="font-size: 3rem; margin-bottom: 10px;">📡</div>
-            <h3>Dashboard Vazio</h3>
-            <p>Adicione um serviço para monitorar.</p>
+            <div style="font-size: 4rem; margin-bottom: 15px;">🛰️</div>
+            <h3>Aguardando Sinais</h3>
+            <p>Adicione um serviço para iniciar a telemetria em tempo real.</p>
         </div>
     </main>
 
@@ -237,24 +264,24 @@
 
             <div class="detail-body">
                 <div class="kpi-deck">
-                    <div class="kpi-card"><label>Status Saúde</label><div class="val" id="kpiStatus">--</div></div>
+                    <div class="kpi-card"><label>Status</label><div class="val" id="kpiStatus">--</div></div>
                     <div class="kpi-card"><label>Latência</label><div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div></div>
-                    <div class="kpi-card"><label>Total Chamadas</label><div class="val" id="kpiTotal">0</div></div>
-                    <div class="kpi-card"><label>Taxa Erro (5m)</label><div class="val" id="kpiErrorRate">0%</div></div>
+                    <div class="kpi-card"><label>Chamadas Totais</label><div class="val" id="kpiTotal">0</div></div>
+                    <div class="kpi-card"><label>Taxa de Erro (5m)</label><div class="val" id="kpiErrorRate">0%</div></div>
                 </div>
 
                 <div class="main-chart-box">
-                    <span class="section-label">LIVE TIMELINE</span>
+                    <span class="section-label">LIVE TIMELINE (60s WINDOW)</span>
                     <div class="chart-fill"><canvas id="mainChart"></canvas></div>
                 </div>
 
                 <div class="sidebar-col">
                     <div class="donut-box">
-                        <span class="section-label">STATUS (PIE)</span>
+                        <span class="section-label" style="position:absolute; top:20px; left:20px;">DISTRIBUIÇÃO</span>
                         <div style="height: 100%; width: 100%; display: flex; justify-content: center;"><canvas id="donutChart"></canvas></div>
                     </div>
                     <div class="log-box">
-                        <span class="section-label" style="border-color: #666;">ÚLTIMAS 10 CHAMADAS</span>
+                        <span class="section-label" style="border-color: #666;">LAST 10 LOGS</span>
                         <div class="log-list" id="logList"></div>
                     </div>
                 </div>
@@ -264,9 +291,9 @@
 
     <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:20px;">Novo Monitor</h2>
-            <div class="form-group"><label>Nome</label><input type="text" id="inpName" placeholder="API Name"></div>
-            <div class="form-group"><label>URL</label><input type="url" id="inpUrl" placeholder="https://..."></div>
+            <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Novo Monitor</h2>
+            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: Production API"></div>
+            <div class="form-group"><label>URL Endpoint</label><input type="url" id="inpUrl" placeholder="https://..."></div>
             <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
@@ -277,7 +304,7 @@
 
     <div class="overlay-backdrop" id="modalConfig" onclick="handleBackdropClick(event, 'modalConfig')">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:20px;">Configurações</h2>
+            <h2 style="color:#fff; margin-bottom:25px; padding-bottom:10px; border-bottom:1px solid var(--glass-border);">Configurações</h2>
             <div class="form-group"><label>Service ID</label><input type="text" id="cfgService"></div>
             <div class="form-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
             <div class="form-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
@@ -291,9 +318,9 @@
 
     <script>
         // --- STATE ---
-        let monitors = JSON.parse(localStorage.getItem('sentinel_v7_1_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_v7_1_config')) || {};
-        let alertHistory = JSON.parse(localStorage.getItem('sentinel_v7_1_alerts')) || [];
+        let monitors = JSON.parse(localStorage.getItem('sentinel_v8_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_v8_config')) || {};
+        let alertHistory = JSON.parse(localStorage.getItem('sentinel_v8_alerts')) || [];
         let activeMonitorId = null;
         let mainChartInst = null;
         let donutChartInst = null;
@@ -302,15 +329,25 @@
             if (config.publicKey) emailjs.init(config.publicKey);
             renderTiles();
             renderAlertFeed();
-            setInterval(engineTick, 1000); 
+            setInterval(engineTick, 1000); // 1s Tick
         });
 
-        // --- ENGINE ---
+        // --- ENGINE (LIVE FLOW) ---
         function engineTick() {
             const now = Date.now();
+            
+            // 1. Check Pings
             monitors.forEach(m => {
                 if (now - (m.lastCheck || 0) >= (m.interval * 1000)) runCheck(m);
             });
+
+            // 2. Update Live Chart (Sliding Window Effect)
+            if (activeMonitorId && mainChartInst) {
+                // Desliza o eixo X para o 'agora' a cada segundo, criando o efeito de movimento
+                mainChartInst.options.scales.x.min = now - (60 * 1000); // Janela de 60s
+                mainChartInst.options.scales.x.max = now;
+                mainChartInst.update('none'); // Update visual sem reprocessar tudo
+            }
         }
 
         async function runCheck(m) {
@@ -318,7 +355,6 @@
             const res = await simulateNetwork(m);
             
             m.history.push({ x: m.lastCheck, y: res.latency, code: res.code });
-            // Mantém histórico maior para o gráfico ter dados suficientes para rolar
             if(m.history.length > 600) m.history.shift();
             
             if(!m.stats) m.stats = {};
@@ -333,6 +369,7 @@
             checkAlerts(m);
             saveData();
             updateTile(m);
+            
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
@@ -360,7 +397,7 @@
             const alertObj = { time: new Date().toLocaleTimeString(), api: m.name, msg: reason };
             alertHistory.unshift(alertObj);
             if(alertHistory.length > 50) alertHistory.pop();
-            localStorage.setItem('sentinel_v7_1_alerts', JSON.stringify(alertHistory));
+            localStorage.setItem('sentinel_v8_alerts', JSON.stringify(alertHistory));
             renderAlertFeed();
             if (config.serviceId) {
                 try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: reason, to_email: config.destination }); } catch(e) {}
@@ -369,13 +406,14 @@
 
         function renderAlertFeed() {
             const feed = document.getElementById('alertFeed');
-            if (alertHistory.length === 0) { feed.innerHTML = '<div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta</div>'; return; }
+            if (alertHistory.length === 0) { feed.innerHTML = '<div style="padding:25px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta recente</div>'; return; }
             feed.innerHTML = '';
             alertHistory.forEach(a => {
                 feed.innerHTML += `<div class="alert-item crit"><div class="alert-time">${a.time}</div><div class="alert-title">${a.api}</div><div class="alert-msg">${a.msg}</div></div>`;
             });
         }
 
+        // --- UI TILES ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             const empty = document.getElementById('emptyState');
@@ -388,6 +426,11 @@
             });
         }
 
+        function updateTile(m) {
+            const el = document.getElementById(`tile-${m.id}`);
+            if(el) updateTileElement(el, m);
+        }
+
         function updateTileElement(el, m) {
             let sClass = 'tile-ok', sText = 'ONLINE', sColor = 'var(--neon-green)', sBorder = 'var(--neon-green)';
             if(m.lastCode >= 500) { sClass = 'tile-crit'; sText = 'CRITICAL'; sColor = 'var(--neon-red)'; sBorder = 'var(--neon-red)'; }
@@ -395,11 +438,27 @@
             else if(!m.lastCode) { sText = 'WAITING'; sColor = '#666'; sBorder = '#666'; }
 
             el.className = `monitor-tile ${sClass}`;
-            el.innerHTML = `<div><div class="tile-head"><div class="tile-name">${m.name}</div><div class="tile-url">${m.url}</div></div><div class="tile-body"><span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span><span class="tile-unit">ms</span></div></div><div class="tile-footer"><div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div></div>`;
+            // Badge alinhado a direita inferior
+            el.innerHTML = `
+                <div>
+                    <div class="tile-head">
+                        <div class="tile-name">${m.name}</div>
+                        <div class="tile-url">${m.url}</div>
+                    </div>
+                    <div class="tile-body">
+                        <span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span>
+                        <span class="tile-unit">ms</span>
+                    </div>
+                </div>
+                <div class="tile-footer">
+                    <div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div>
+                </div>
+            `;
         }
 
-        // --- DETAIL MODAL ---
+        // --- DETAIL VIEW ---
         function handleBackdropClick(e, id) { if(e.target.id === id) { if(id === 'detailOverlay') closeDetail(); else closeModals(); } }
+        
         function openDetail(id) {
             activeMonitorId = id;
             const m = monitors.find(x => x.id === id);
@@ -415,6 +474,7 @@
         function closeDetail() { document.getElementById('detailOverlay').classList.remove('active'); activeMonitorId = null; if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy(); }
 
         function updateDetailView(m) {
+            // 1. KPI Update
             const code = m.lastCode || 0; let color = '#0aff68', text = 'SAUDÁVEL';
             if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; } else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
             document.getElementById('kpiStatus').innerText = text; document.getElementById('kpiStatus').style.color = color;
@@ -423,7 +483,7 @@
             const rate = recent.length ? ((errs / recent.length) * 100).toFixed(1) : 0;
             const rEl = document.getElementById('kpiErrorRate'); rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
 
-            // --- LIVE LOGS (LAST 10 ONLY) ---
+            // 2. Log Update (Last 10)
             const logList = document.getElementById('logList');
             logList.innerHTML = '';
             m.history.slice(-10).reverse().forEach(h => {
@@ -431,15 +491,13 @@
                 logList.innerHTML += `<div class="log-row"><span style="color:#666">${new Date(h.x).toLocaleTimeString()}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
-            // --- HORIZONTAL TIMELINE CHART ---
+            // 3. Chart Data Update (Main Chart sliding handled in engineTick)
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
-                // Create Sliding Window (e.g., last 2 minutes)
-                const now = Date.now();
-                mainChartInst.options.scales.x.min = now - (2 * 60 * 1000); 
-                mainChartInst.options.scales.x.max = now;
-                mainChartInst.update('none');
+                // No update() here to allow engineTick to handle smooth sliding
             }
+            
+            // 4. Pie Update
             if(donutChartInst) {
                 const codes = Object.keys(m.stats); donutChartInst.data.labels = codes;
                 donutChartInst.data.datasets[0].data = codes.map(c => m.stats[c]);
@@ -452,13 +510,13 @@
             if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy();
             Chart.defaults.color = '#8b9bb4'; Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
-            // TIMELINE (TIME SCALE)
+            // MAIN CHART (TIMELINE)
             const ctxMain = document.getElementById('mainChart').getContext('2d');
             mainChartInst = new Chart(ctxMain, {
                 type: 'line',
                 data: {
                     datasets: [{
-                        data: m.history, borderWidth: 2, fill: true, pointRadius: 2, tension: 0.2,
+                        data: m.history, borderWidth: 2, fill: true, pointRadius: 3, tension: 0.3,
                         segment: {
                             borderColor: ctx => { const code = ctx.p1.raw.code; if(code>=500) return '#ff0f4b'; if(code>=400) return '#ff9100'; return '#0aff68'; },
                             backgroundColor: ctx => {
@@ -475,21 +533,23 @@
                     scales: {
                         x: { 
                             type: 'time', time: { unit: 'second', displayFormats: { second: 'HH:mm:ss' } },
-                            grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true }
+                            grid: { display: false }, ticks: { color: '#666', maxRotation: 0, autoSkip: true }
                         },
                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }
                     }
                 }
             });
 
+            // PIE CHART (NO HOLE)
             const ctxDonut = document.getElementById('donutChart').getContext('2d');
             donutChartInst = new Chart(ctxDonut, {
-                type: 'pie', // PIE CHART (NO HOLE)
+                type: 'pie',
                 data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } } }
             });
         }
 
+        // --- DATA & NET ---
         function addMonitorSafe() {
             try {
                 const name = document.getElementById('inpName').value; const url = document.getElementById('inpUrl').value; let interval = parseInt(document.getElementById('inpInterval').value);
@@ -497,13 +557,13 @@
                 const newM = { id: Date.now(), name, url, interval, history: [], stats: {}, errorsSeq: 0 };
                 monitors.push(newM); saveData(); renderTiles(); closeModals();
                 document.getElementById('inpName').value=''; document.getElementById('inpUrl').value=''; document.getElementById('inpInterval').value='10';
-                runCheck(newM);
+                runCheck(newM); // Immediate Ping
             } catch (e) { alert("Erro: " + e.message); }
         }
         function deleteCurrentMonitor() { if(confirm("Excluir?")) { monitors = monitors.filter(m => m.id !== activeMonitorId); saveData(); closeDetail(); renderTiles(); } }
         function simulateNetwork(m) { return new Promise(resolve => { const r = Math.random(); let code = 200, lat = Math.floor(Math.random() * 60) + 20; if(r > 0.85) { code = 500; lat += 250; } else if(r > 0.80) code = 429; setTimeout(() => resolve({ code, latency: lat }), 200); }); }
-        function saveConfig() { config.serviceId = document.getElementById('cfgService').value; config.templateId = document.getElementById('cfgTemplate').value; config.publicKey = document.getElementById('cfgKey').value; config.destination = document.getElementById('cfgDest').value; localStorage.setItem('sentinel_v7_1_config', JSON.stringify(config)); if(config.publicKey) emailjs.init(config.publicKey); closeModals(); }
-        function saveData() { localStorage.setItem('sentinel_v7_1_monitors', JSON.stringify(monitors)); }
+        function saveConfig() { config.serviceId = document.getElementById('cfgService').value; config.templateId = document.getElementById('cfgTemplate').value; config.publicKey = document.getElementById('cfgKey').value; config.destination = document.getElementById('cfgDest').value; localStorage.setItem('sentinel_v8_config', JSON.stringify(config)); if(config.publicKey) emailjs.init(config.publicKey); closeModals(); }
+        function saveData() { localStorage.setItem('sentinel_v8_monitors', JSON.stringify(monitors)); }
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') { document.getElementById('cfgService').value = config.serviceId||''; document.getElementById('cfgTemplate').value = config.templateId||''; document.getElementById('cfgKey').value = config.publicKey||''; document.getElementById('cfgDest').value = config.destination||''; } }
         function closeModals() { document.getElementById('modalAdd').classList.remove('active'); document.getElementById('modalConfig').classList.remove('active'); }
     </script>

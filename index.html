@@ -3,299 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel AI 2.0 | Intelligent Monitoring</title>
+    <title>Sentinel AI 2.1 | Pro Dashboard</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- CORE THEME --- */
+        /* --- THEME CONFIG --- */
         :root {
             --bg-deep: #050508;
-            --glass-base: rgba(20, 20, 30, 0.4);
+            --glass-base: rgba(22, 22, 35, 0.6); /* Mais opaco para leitura */
             --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 255, 255, 0.03);
             
             --neon-blue: #00f3ff;
-            --neon-purple: #bc13fe;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
             --neon-orange: #ff9100;
 
             --font-main: 'Outfit', sans-serif;
-            --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
 
         body {
             background-color: var(--bg-deep);
-            /* Fundo Complexo e Animado */
             background-image: 
-                radial-gradient(circle at 15% 50%, rgba(188, 19, 254, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.08), transparent 25%);
+                radial-gradient(circle at 50% -20%, rgba(0, 243, 255, 0.1), transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(188, 19, 254, 0.05), transparent 30%);
             color: #fff;
             height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden; /* App-like feel */
         }
 
-        /* --- UI COMPONENTS --- */
-        
-        /* Scrollbar Invisível */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
-
+        /* --- LAYOUT PRINCIPAL --- */
         .app-shell {
-            max-width: 1800px;
-            width: 96%;
+            max-width: 1600px;
+            width: 95%;
             margin: 0 auto;
-            height: 100%;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 30px 0;
+            padding-top: 30px;
         }
 
-        /* HEADER */
         header {
+            flex-shrink: 0; /* Não encolher */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             padding: 0 10px;
-            animation: fadeInDown 1s var(--ease-elastic);
         }
 
-        h1 {
-            font-weight: 200;
-            font-size: 2rem;
-            letter-spacing: -1px;
-            background: linear-gradient(90deg, #fff, var(--text-muted));
-            -webkit-background-clip: text;
-        }
-        h1 b { font-weight: 800; color: var(--neon-blue); text-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
+        h1 { font-weight: 200; font-size: 1.8rem; letter-spacing: -0.5px; }
+        h1 b { font-weight: 800; color: var(--neon-blue); text-shadow: 0 0 25px rgba(0, 243, 255, 0.3); }
 
-        .toolbar { display: flex; gap: 15px; }
+        .toolbar { display: flex; gap: 12px; }
 
         .btn {
-            border: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex; align-items: center; gap: 8px;
-            font-size: 0.9rem;
+            border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
         }
-
-        .btn-glass {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--glass-border);
-            color: #ccc;
-        }
+        .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
         .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
-        .btn-glass.active { border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 15px rgba(10, 255, 104, 0.1); }
+        .btn-glass.active { border-color: var(--neon-green); color: var(--neon-green); }
+        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 4px 15px rgba(0, 243, 255, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0, 243, 255, 0.35); }
 
-        .btn-primary {
-            background: linear-gradient(135deg, var(--neon-blue), #0062ff);
-            color: #000;
-            box-shadow: 0 8px 20px rgba(0, 243, 255, 0.25);
-        }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0, 243, 255, 0.4); }
-
-        /* GRID SYSTEM */
+        /* --- GRID DE CARDS (CORRIGIDO) --- */
         .monitor-grid {
+            flex: 1; /* Ocupa o resto da tela */
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-            gap: 25px;
+            /* Cards com largura mínima ideal */
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            /* Altura das linhas baseada no conteúdo, não estica */
+            grid-auto-rows: min-content; 
+            align-content: start; /* Joga os cards para o topo */
+            gap: 20px;
             overflow-y: auto;
-            padding: 10px 10px 50px 10px; /* Padding bottom para scroll */
-            flex: 1;
+            padding: 5px 10px 80px 10px; /* Padding bottom extra para scroll */
         }
 
-        /* CARD DESIGN (GLASSMORPHISM) */
+        /* Scrollbar fina */
+        .monitor-grid::-webkit-scrollbar { width: 6px; }
+        .monitor-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+
+        /* --- CARD DESIGN (CORRIGIDO) --- */
         .card {
             background: var(--glass-base);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255,255,255,0.15); /* Top highlight */
-            border-radius: 20px;
-            padding: 25px;
+            border-radius: 16px;
+            padding: 24px;
             position: relative;
-            transition: all 0.4s var(--ease-elastic);
+            animation: popIn 0.4s var(--ease-elastic);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            
+            /* CORREÇÃO: Altura automática para não esticar */
+            height: auto; 
             display: flex;
             flex-direction: column;
-            animation: fadeInUp 0.6s var(--ease-elastic);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .card:hover {
-            transform: translateY(-5px) scale(1.01);
             border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
         }
 
-        /* Card Header */
+        /* Cabeçalho do Card */
         .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;
         }
-
-        .meta h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 5px; color: #fff; }
-        .meta .url { font-size: 0.75rem; color: #888; font-family: monospace; letter-spacing: 0.5px; }
+        .meta { max-width: 70%; }
+        .meta h3 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .meta .url { font-size: 0.7rem; color: #888; font-family: monospace; }
         
         .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            border-radius: 30px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid transparent;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            padding: 5px 10px; border-radius: 20px; background: rgba(0,0,0,0.4);
+            display: flex; align-items: center; gap: 6px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px;
         }
+        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-        /* Pulse Dot */
-        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 rgba(255,255,255,0.1); }
+        /* Status Colors */
+        .st-ok { color: var(--neon-green); border: 1px solid rgba(10, 255, 104, 0.2); }
+        .st-ok .pulse-dot { background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green); animation: pulse 2s infinite; }
         
-        /* Status Themes */
-        .st-ok .pulse-dot { background: var(--neon-green); animation: pulseGreen 2s infinite; }
-        .st-ok { color: var(--neon-green); border-color: rgba(10, 255, 104, 0.2); background: rgba(10, 255, 104, 0.05); }
-
+        .st-warn { color: var(--neon-orange); border: 1px solid rgba(255, 145, 0, 0.2); }
         .st-warn .pulse-dot { background: var(--neon-orange); }
-        .st-warn { color: var(--neon-orange); border-color: rgba(255, 145, 0, 0.2); }
 
-        .st-err .pulse-dot { background: var(--neon-red); animation: pulseRed 1s infinite; }
-        .st-err { color: var(--neon-red); border-color: rgba(255, 15, 75, 0.2); background: rgba(255, 15, 75, 0.05); }
+        .st-err { color: var(--neon-red); border: 1px solid rgba(255, 15, 75, 0.2); }
+        .st-err .pulse-dot { background: var(--neon-red); animation: pulseFast 1s infinite; }
 
-        /* Info Row (Latency, Errors) */
+        /* Métricas */
         .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding: 0 5px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px;
+            background: rgba(0,0,0,0.2); padding: 12px; border-radius: 10px;
         }
-        .metric { text-align: left; }
-        .metric span { display: block; font-size: 0.7rem; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; }
-        .metric b { font-size: 1.1rem; font-weight: 400; }
-        
-        .metric-err b { color: var(--neon-red); }
+        .metric { display: flex; flex-direction: column; }
+        .metric span { font-size: 0.65rem; color: #666; font-weight: 700; margin-bottom: 2px; }
+        .metric b { font-size: 1.1rem; font-weight: 400; color: #fff; }
 
-        /* Chart Area */
-        .chart-container {
-            flex: 1;
-            min-height: 100px;
+        /* --- CHART AREA (CORRIGIDA) --- */
+        .chart-wrapper {
             width: 100%;
+            /* CORREÇÃO: Altura fixa para garantir proporção horizontal */
+            height: 180px; 
+            margin-bottom: 15px;
             position: relative;
         }
 
-        /* Volumetry Chips */
+        /* Chips de Volumetria */
         .chips-container {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto;
+            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;
         }
-
         .chip {
-            font-size: 0.7rem;
-            padding: 4px 10px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.03);
-            color: #aaa;
-            display: flex; gap: 6px;
+            font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; 
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+            color: #aaa; display: flex; gap: 4px;
         }
         .chip b { color: #fff; }
-        
-        .chip.bad { border: 1px solid rgba(255, 15, 75, 0.3); color: var(--neon-red); background: rgba(255, 15, 75, 0.05); }
-        .chip.good { border: 1px solid rgba(10, 255, 104, 0.2); color: var(--neon-green); }
+        .chip.bad { border-color: rgba(255, 15, 75, 0.3); color: var(--neon-red); background: rgba(255, 15, 75, 0.05); }
 
-        /* Close Button */
+        /* Fechar Card */
         .close-btn {
-            position: absolute; top: 15px; right: 15px;
-            opacity: 0; transition: 0.3s;
-            background: none; border: none; color: var(--neon-red); cursor: pointer; font-size: 1.2rem;
+            position: absolute; top: 12px; right: 12px; opacity: 0; background: none; border: none; 
+            color: #666; cursor: pointer; font-size: 1.2rem; transition: 0.2s;
         }
         .card:hover .close-btn { opacity: 1; }
+        .close-btn:hover { color: var(--neon-red); }
 
-        /* --- MODAL SYSTEM --- */
+        /* --- MODALS --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            z-index: 1000; opacity: 0; pointer-events: none; transition: 0.4s;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+            z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
         .modal-overlay.active { opacity: 1; pointer-events: all; }
 
         .modal {
-            background: #0f0f13;
-            border: 1px solid var(--glass-border);
-            width: 500px;
-            padding: 40px;
-            border-radius: 24px;
-            transform: scale(0.9) translateY(20px);
-            transition: 0.4s var(--ease-elastic);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-            position: relative;
-            overflow: hidden;
+            background: #0f0f13; border: 1px solid var(--glass-border); width: 450px;
+            padding: 30px; border-radius: 20px; box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+            transform: scale(0.9); transition: 0.3s var(--ease-elastic);
         }
-        .modal-overlay.active .modal { transform: scale(1) translateY(0); }
-        
-        /* Modal glow effect */
-        .modal::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(0, 243, 255, 0.05), transparent 60%);
-            pointer-events: none;
-        }
+        .modal-overlay.active .modal { transform: scale(1); }
 
-        .input-group { margin-bottom: 20px; position: relative; z-index: 2; }
-        .input-group label { display: block; color: #888; font-size: 0.8rem; margin-bottom: 8px; font-weight: 600; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; color: #888; font-size: 0.8rem; margin-bottom: 6px; }
         .input-group input {
-            width: 100%; padding: 14px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: #fff; font-size: 1rem;
-            outline: none; transition: 0.3s;
+            width: 100%; padding: 12px; background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; outline: none;
         }
-        .input-group input:focus { border-color: var(--neon-blue); background: rgba(255,255,255,0.05); box-shadow: 0 0 15px rgba(0, 243, 255, 0.1); }
+        .input-group input:focus { border-color: var(--neon-blue); }
 
-        .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; position: relative; z-index: 2; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
 
-        /* TOAST */
+        /* Toast */
         .toast-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
         .toast {
-            background: rgba(20, 20, 30, 0.9);
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            color: #fff; padding: 15px 25px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            animation: slideLeft 0.4s var(--ease-elastic), fadeOut 0.5s 4s forwards;
-            display: flex; align-items: center; gap: 10px;
+            background: #181820; border: 1px solid rgba(255,255,255,0.1); color: #fff;
+            padding: 12px 20px; border-radius: 8px; font-size: 0.9rem;
+            animation: slideIn 0.3s ease, fadeOut 0.5s 4s forwards;
+            border-left: 4px solid var(--neon-blue);
         }
-        .toast::before { content: ''; width: 8px; height: 8px; border-radius: 50%; }
-        .toast.success::before { background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
-        .toast.error::before { background: var(--neon-red); box-shadow: 0 0 10px var(--neon-red); }
+        .toast.error { border-left-color: var(--neon-red); }
 
-        /* ANIMATIONS */
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulseGreen { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(10, 255, 104, 0); } 100% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0); } }
-        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(255, 15, 75, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 15, 75, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 15, 75, 0); } }
-        @keyframes slideLeft { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* Animacoes */
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(10, 255, 104, 0); } }
+        @keyframes pulseFast { 0% { box-shadow: 0 0 0 0 rgba(255, 15, 75, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(255, 15, 75, 0); } }
+        @keyframes slideIn { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes fadeOut { to { opacity: 0; transform: translateY(10px); pointer-events: none; } }
 
     </style>
@@ -304,76 +228,57 @@
 
     <div class="app-shell">
         <header>
-            <h1>Sentinel <b>AI 2.0</b></h1>
+            <h1>Sentinel <b>AI 2.1</b></h1>
             <div class="toolbar">
                 <button class="btn btn-glass" id="btnConfig" onclick="openModal('modalConfig')">
-                    ⚙️ Configurar Alertas
+                    ⚙️ Config
                 </button>
                 <button class="btn btn-primary" onclick="openModal('modalAdd')">
-                    + Adicionar Monitor
+                    + Monitor
                 </button>
             </div>
         </header>
 
         <div class="monitor-grid" id="grid">
-            <div id="empty-state" style="grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 400px; color: #444;">
-                <h2 style="font-weight: 200; font-size: 2rem; margin-bottom: 10px;">Sistema em Standby</h2>
-                <p>Adicione um monitor para começar a análise.</p>
+            <div id="empty-state" style="grid-column: 1/-1; text-align: center; margin-top: 100px; color: #444;">
+                <h3 style="font-weight: 300; font-size: 1.5rem;">Dashboard Disponível</h3>
+                <p style="font-size: 0.9rem; margin-top: 10px;">Adicione um monitor para começar.</p>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modalAdd">
         <div class="modal">
-            <h2 style="margin-bottom: 30px; font-weight: 400;">Novo <b style="color:var(--neon-blue)">Alvo</b></h2>
-            
+            <h2 style="margin-bottom: 20px; font-weight: 400;">Novo Alvo</h2>
             <div class="input-group">
                 <label>Nome do Serviço</label>
-                <input type="text" id="inpName" placeholder="Ex: Backend Payments">
+                <input type="text" id="inpName" placeholder="Ex: API Gateway">
             </div>
             <div class="input-group">
-                <label>URL do Endpoint</label>
-                <input type="url" id="inpUrl" placeholder="https://api.system.com/health">
+                <label>URL</label>
+                <input type="url" id="inpUrl" placeholder="https://...">
             </div>
             <div class="input-group">
-                <label>Intervalo de Checagem (Minutos)</label>
+                <label>Intervalo (Minutos)</label>
                 <input type="number" id="inpInterval" value="1" min="0.1" step="0.1">
             </div>
-
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModal('modalAdd')">Cancelar</button>
-                <button class="btn btn-primary" onclick="addMonitor()">Iniciar Monitoramento</button>
+                <button class="btn btn-primary" onclick="addMonitor()">Salvar</button>
             </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="modalConfig">
         <div class="modal">
-            <h2 style="margin-bottom: 20px; font-weight: 400;">Configurar <b style="color:var(--neon-purple)">EmailJS</b></h2>
-            <p style="margin-bottom: 20px; font-size: 0.85rem; color: #888;">
-                Necessário para o sistema enviar alertas inteligentes.
-            </p>
-            
-            <div class="input-group">
-                <label>Service ID</label>
-                <input type="text" id="cfgService">
-            </div>
-            <div class="input-group">
-                <label>Template ID</label>
-                <input type="text" id="cfgTemplate">
-            </div>
-            <div class="input-group">
-                <label>Public Key</label>
-                <input type="text" id="cfgKey">
-            </div>
-            <div class="input-group">
-                <label>Email de Destino</label>
-                <input type="email" id="cfgDest">
-            </div>
-
+            <h2 style="margin-bottom: 20px; font-weight: 400;">Configurar EmailJS</h2>
+            <div class="input-group"><label>Service ID</label><input type="text" id="cfgService"></div>
+            <div class="input-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
+            <div class="input-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
+            <div class="input-group"><label>Email Destino</label><input type="email" id="cfgDest"></div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModal('modalConfig')">Cancelar</button>
-                <button class="btn btn-primary" onclick="saveConfig()">Salvar Credenciais</button>
+                <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
             </div>
         </div>
     </div>
@@ -381,19 +286,17 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
-        // --- CONSTANTES DE IA / LÓGICA ---
-        const ALERT_COOLDOWN_MS = 15 * 60 * 1000; // 15 min sem repetir email para a mesma API
-        const WINDOW_ANALYSIS_MS = 5 * 60 * 1000; // Janela de 5 min para analise de volumetria
-        const FAILURE_THRESHOLD = 0.25; // 25% de erro dispara alerta
+        // --- LOGIC CORE ---
+        const ALERT_COOLDOWN_MS = 15 * 60 * 1000;
+        const WINDOW_ANALYSIS_MS = 5 * 60 * 1000; 
+        const FAILURE_THRESHOLD = 0.25; 
 
-        // --- ESTADO ---
         let monitors = JSON.parse(localStorage.getItem('sentinel_v2_monitors')) || [];
         let config = JSON.parse(localStorage.getItem('sentinel_v2_config')) || {
             serviceId: '', templateId: '', publicKey: '', destination: ''
         };
         let charts = {};
 
-        // --- CORE ---
         document.addEventListener('DOMContentLoaded', () => {
             if (config.publicKey) emailjs.init(config.publicKey);
             updateConfigButton();
@@ -412,69 +315,47 @@
 
         async function pingTarget(m) {
             m.lastCheck = Date.now();
-            
-            // SIMULAÇÃO DE REDE (Troque por fetch real se CORS permitir)
             const result = await simulateNetwork(m);
             
-            // 1. Gravar Histórico (Limitado a 100 pts para performance)
+            // Histórico
             m.history.push({ x: m.lastCheck, y: result.latency, code: result.code });
-            if(m.history.length > 100) m.history.shift();
+            if(m.history.length > 50) m.history.shift(); // Limita a 50 pontos
 
-            // 2. Atualizar Contadores de Volumetria
+            // Stats
             if(!m.stats) m.stats = {};
             if(!m.stats[result.code]) m.stats[result.code] = 0;
             m.stats[result.code]++;
 
-            // 3. Lógica de Consecutive Errors (Regra 1)
-            if (result.code >= 400) {
-                m.consecutiveErrors = (m.consecutiveErrors || 0) + 1;
-            } else {
-                m.consecutiveErrors = 0; // Reset se sucesso
-            }
+            // Lógica Erro Consecutivo
+            if (result.code >= 400) m.consecutiveErrors = (m.consecutiveErrors || 0) + 1;
+            else m.consecutiveErrors = 0;
 
             saveData();
             updateCard(m, result);
-            
-            // 4. RODAR ALGORITMO DE ALERTA
             checkSmartAlerts(m, result);
         }
 
         async function checkSmartAlerts(m, result) {
             const now = Date.now();
             const lastAlert = m.lastAlert || 0;
-            
-            // Se estiver em cooldown, ignora tudo
             if (now - lastAlert < ALERT_COOLDOWN_MS) return;
             
             let triggerReason = null;
+            if (m.consecutiveErrors >= 5) triggerReason = `CRÍTICO: 5 falhas consecutivas.`;
 
-            // REGRA 1: 5 Erros Consecutivos
-            if (m.consecutiveErrors >= 5) {
-                triggerReason = `CRÍTICO: 5 falhas consecutivas detectadas.`;
-            }
-
-            // REGRA 2: Volumetria de 25% em 5 minutos
             if (!triggerReason) {
-                const windowStart = now - WINDOW_ANALYSIS_MS;
-                const recentPoints = m.history.filter(h => h.x > windowStart);
-                
-                // Precisamos de pelo menos 4 amostras para não dar alerta falso no inicio
+                const recentPoints = m.history.filter(h => h.x > (now - WINDOW_ANALYSIS_MS));
                 if (recentPoints.length >= 4) {
                     const errorCount = recentPoints.filter(h => h.code >= 400).length;
-                    const failureRate = errorCount / recentPoints.length;
-                    
-                    if (failureRate >= FAILURE_THRESHOLD) {
-                        triggerReason = `ALERTA: Taxa de falha ${(failureRate*100).toFixed(1)}% nos últimos 5 min.`;
+                    if ((errorCount / recentPoints.length) >= FAILURE_THRESHOLD) {
+                        triggerReason = `ALERTA: Alta taxa de falha (25%+)`;
                     }
                 }
             }
 
-            // DISPARAR ALERTA
             if (triggerReason && config.serviceId) {
-                console.log(`Sending Alert: ${triggerReason}`);
-                m.lastAlert = now; // Ativa cooldown
+                m.lastAlert = now;
                 saveData();
-                
                 sendEmailAlert(m, triggerReason, result);
             }
         }
@@ -483,50 +364,28 @@
             showToast(`Enviando alerta: ${m.name}`, 'error');
             try {
                 await emailjs.send(config.serviceId, config.templateId, {
-                    api_name: m.name,
-                    api_url: m.url,
-                    message: reason,
-                    last_code: result.code,
-                    to_email: config.destination
+                    api_name: m.name, api_url: m.url, message: reason, last_code: result.code, to_email: config.destination
                 });
-                showToast('Email de alerta enviado com sucesso!', 'success');
-            } catch (e) {
-                console.error(e);
-                showToast('Falha ao enviar email (Verifique Console)', 'error');
-            }
+                showToast('Email enviado!', 'success');
+            } catch (e) { console.error(e); }
         }
 
-        // --- SIMULADOR DE REDE OTIMIZADO ---
         function simulateNetwork(m) {
             return new Promise(resolve => {
                 const rand = Math.random();
                 let code = 200;
-                let latency = Math.floor(Math.random() * 80) + 20;
-
-                // 20% de chance de erro para testar suas regras
-                if (rand > 0.8) {
-                    code = Math.random() > 0.5 ? 500 : 429;
-                    latency += 200;
-                }
-
+                let latency = Math.floor(Math.random() * 60) + 15;
+                if (rand > 0.85) { code = Math.random() > 0.5 ? 500 : 429; latency += 150; }
                 setTimeout(() => resolve({ code, latency }), 300);
             });
         }
 
-        // --- RENDERIZAÇÃO ---
+        // --- UI RENDER ---
         function renderAll() {
             const grid = document.getElementById('grid');
-            if (monitors.length === 0) {
-                document.getElementById('empty-state').style.display = 'flex';
-                return;
-            }
+            if (monitors.length === 0) { document.getElementById('empty-state').style.display = 'block'; return; }
             document.getElementById('empty-state').style.display = 'none';
-            
-            monitors.forEach(m => {
-                if(!document.getElementById(`card-${m.id}`)) {
-                    createCardDOM(m);
-                }
-            });
+            monitors.forEach(m => { if(!document.getElementById(`card-${m.id}`)) createCardDOM(m); });
         }
 
         function createCardDOM(m) {
@@ -542,91 +401,57 @@
                         <div class="url">${m.url}</div>
                     </div>
                     <div class="status-pill st-warn" id="pill-${m.id}">
-                        <div class="pulse-dot"></div>
-                        <span id="txt-${m.id}">INIT</span>
+                        <div class="pulse-dot"></div><span id="txt-${m.id}">...</span>
                     </div>
                 </div>
-                
                 <div class="info-row">
-                    <div class="metric">
-                        <span>LATÊNCIA</span>
-                        <b id="lat-${m.id}">-- ms</b>
-                    </div>
-                    <div class="metric">
-                        <span>ERROS SEQ.</span>
-                        <b id="seq-${m.id}">0</b>
-                    </div>
-                    <div class="metric">
-                        <span>ÚLT. STATUS</span>
-                        <b id="code-${m.id}">--</b>
-                    </div>
+                    <div class="metric"><span>LATÊNCIA</span><b id="lat-${m.id}">--</b></div>
+                    <div class="metric"><span>ERROS SEQ.</span><b id="seq-${m.id}">0</b></div>
+                    <div class="metric"><span>CODE</span><b id="code-${m.id}">--</b></div>
                 </div>
-
-                <div class="chart-container">
-                    <canvas id="chart-${m.id}"></canvas>
-                </div>
-
+                <div class="chart-wrapper"><canvas id="chart-${m.id}"></canvas></div>
                 <div class="chips-container" id="chips-${m.id}"></div>
             `;
             grid.appendChild(el);
             initChart(m);
-            // Renderiza estado inicial se existir histórico
-            if(m.history.length > 0) {
-                updateCard(m, m.history[m.history.length-1]);
-            }
+            if(m.history.length > 0) updateCard(m, m.history[m.history.length-1]);
         }
 
         function updateCard(m, result) {
-            // 1. Atualiza Status Visual
+            // Status Visual
             const pill = document.getElementById(`pill-${m.id}`);
             const txt = document.getElementById(`txt-${m.id}`);
             
-            if (result.code >= 500) {
-                pill.className = 'status-pill st-err'; txt.innerText = 'CRITICAL';
-            } else if (result.code >= 400) {
-                pill.className = 'status-pill st-warn'; txt.innerText = 'WARN';
-            } else {
-                pill.className = 'status-pill st-ok'; txt.innerText = 'HEALTHY';
-            }
+            if (result.code >= 500) { pill.className = 'status-pill st-err'; txt.innerText = 'CRITICAL'; } 
+            else if (result.code >= 400) { pill.className = 'status-pill st-warn'; txt.innerText = 'WARN'; } 
+            else { pill.className = 'status-pill st-ok'; txt.innerText = 'HEALTHY'; }
 
-            // 2. Métricas
-            document.getElementById(`lat-${m.id}`).innerText = result.latency + ' ms';
+            document.getElementById(`lat-${m.id}`).innerText = result.latency + 'ms';
             document.getElementById(`code-${m.id}`).innerText = result.code;
             
-            // Cor do contador sequencial
             const seqEl = document.getElementById(`seq-${m.id}`);
             seqEl.innerText = m.consecutiveErrors;
             seqEl.style.color = m.consecutiveErrors > 0 ? 'var(--neon-red)' : '#fff';
 
-            // 3. Volumetria (Chips)
-            renderChips(m);
-
-            // 4. Gráfico
-            updateChart(m);
-        }
-
-        function renderChips(m) {
-            const container = document.getElementById(`chips-${m.id}`);
-            container.innerHTML = '';
-            
-            const codes = Object.keys(m.stats).sort();
-            codes.forEach(code => {
-                const count = m.stats[code];
+            // Volumetria
+            const chips = document.getElementById(`chips-${m.id}`);
+            chips.innerHTML = '';
+            Object.keys(m.stats).sort().forEach(code => {
                 const isBad = parseInt(code) >= 400;
-                const div = document.createElement('div');
-                div.className = `chip ${isBad ? 'bad' : 'good'}`;
-                div.innerHTML = `<b>${code}</b> ${count}x`;
-                container.appendChild(div);
+                chips.innerHTML += `<div class="chip ${isBad?'bad':''}"><b style="color:${isBad?'var(--neon-red)':'#fff'}">${code}</b> ${m.stats[code]}x</div>`;
             });
+
+            // Gráfico
+            if(charts[m.id]) {
+                charts[m.id].data.datasets[0].data = m.history;
+                charts[m.id].update();
+            }
         }
 
-        // --- CHART.JS CONFIG ---
         function initChart(m) {
             const ctx = document.getElementById(`chart-${m.id}`).getContext('2d');
-            
-            // Gradiente Vertical no Gráfico
-            const gradient = ctx.createLinearGradient(0, 0, 0, 150);
-            gradient.addColorStop(0, 'rgba(0, 243, 255, 0.4)');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+            gradient.addColorStop(0, 'rgba(0, 243, 255, 0.2)');
             gradient.addColorStop(1, 'rgba(0, 243, 255, 0)');
 
             charts[m.id] = new Chart(ctx, {
@@ -634,64 +459,40 @@
                 data: {
                     datasets: [{
                         data: m.history,
-                        borderColor: '#00f3ff',
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        fill: true,
-                        tension: 0.4,
-                        // Linha muda de cor se erro
-                        segment: {
-                            borderColor: ctx => ctx.p0.raw.code >= 400 ? '#ff0f4b' : '#00f3ff'
-                        }
+                        borderColor: '#00f3ff', backgroundColor: gradient,
+                        borderWidth: 2, pointRadius: 0, fill: true, tension: 0.4,
+                        segment: { borderColor: ctx => ctx.p0.raw.code >= 400 ? '#ff0f4b' : '#00f3ff' }
                     }]
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: false,
+                    responsive: true, maintainAspectRatio: false, animation: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        x: { display: false },
-                        y: { display: false, min: 0 }
-                    }
+                    scales: { x: { display: false }, y: { display: false } }
                 }
             });
         }
 
-        function updateChart(m) {
-            if(charts[m.id]) {
-                charts[m.id].data.datasets[0].data = m.history;
-                charts[m.id].update();
-            }
-        }
-
-        // --- GERENCIAMENTO ---
+        // --- MANAGERS ---
         function addMonitor() {
             const name = document.getElementById('inpName').value;
             const url = document.getElementById('inpUrl').value;
             const interval = document.getElementById('inpInterval').value;
-
             if(name && url) {
-                const newM = {
+                monitors.push({
                     id: Date.now(), name, url, interval: parseFloat(interval),
-                    lastCheck: 0, consecutiveErrors: 0, lastAlert: 0,
-                    history: [], stats: {}
-                };
-                monitors.push(newM);
-                saveData();
-                renderAll();
-                closeModal('modalAdd');
+                    lastCheck: 0, consecutiveErrors: 0, lastAlert: 0, history: [], stats: {}
+                });
+                saveData(); renderAll(); closeModal('modalAdd');
             }
         }
 
         function removeMonitor(id) {
-            if(confirm('Remover monitor?')) {
+            if(confirm('Excluir?')) {
                 monitors = monitors.filter(m => m.id !== id);
                 if(charts[id]) charts[id].destroy();
                 document.getElementById(`card-${id}`).remove();
                 saveData();
-                if(monitors.length === 0) renderAll(); // show empty state
+                if(monitors.length===0) renderAll();
             }
         }
 
@@ -700,38 +501,25 @@
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            
             localStorage.setItem('sentinel_v2_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
-            
-            closeModal('modalConfig');
-            updateConfigButton();
-            showToast('Configurações salvas!', 'success');
+            closeModal('modalConfig'); updateConfigButton(); showToast('Config Salva!', 'success');
         }
 
-        // --- UI HELPERS ---
         function saveData() { localStorage.setItem('sentinel_v2_monitors', JSON.stringify(monitors)); }
-        function openModal(id) { document.getElementById(id).classList.add('active'); loadConfigInputs(); }
+        function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') loadCfg(); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        
-        function loadConfigInputs() {
+        function loadCfg() {
             document.getElementById('cfgService').value = config.serviceId;
             document.getElementById('cfgTemplate').value = config.templateId;
             document.getElementById('cfgKey').value = config.publicKey;
             document.getElementById('cfgDest').value = config.destination;
         }
-
-        function updateConfigButton() {
-            const btn = document.getElementById('btnConfig');
-            if(config.publicKey) btn.classList.add('active');
-        }
-
+        function updateConfigButton() { if(config.publicKey) document.getElementById('btnConfig').classList.add('active'); }
         function showToast(msg, type) {
-            const box = document.createElement('div');
-            box.className = `toast ${type}`;
-            box.innerText = msg;
-            document.getElementById('toastContainer').appendChild(box);
-            setTimeout(() => box.remove(), 4500);
+            const t = document.createElement('div'); t.className = `toast ${type}`; t.innerText = msg;
+            document.getElementById('toastContainer').appendChild(t);
+            setTimeout(() => t.remove(), 4000);
         }
 
     </script>

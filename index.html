@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Sentinel Dashboard</title>
+    <title>API Sentinel Dashboard Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* --- CORE DESIGN SYSTEM --- */
@@ -24,8 +24,8 @@
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 242, 255, 0.05) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(255, 56, 100, 0.05) 0%, transparent 20%);
+                radial-gradient(circle at 10% 20%, rgba(0, 242, 255, 0.04) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255, 56, 100, 0.04) 0%, transparent 20%);
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
@@ -99,7 +99,6 @@
             padding-bottom: 50px;
         }
         
-        /* Custom Scrollbar */
         .monitor-grid::-webkit-scrollbar { width: 6px; }
         .monitor-grid::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
@@ -114,17 +113,18 @@
             transition: transform 0.3s ease, border-color 0.3s;
             display: flex;
             flex-direction: column;
+            animation: fadeIn 0.5s ease;
         }
 
         .api-card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
 
+        /* Header do Card */
         .card-top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 15px;
         }
-
         .api-info h3 { font-size: 1rem; margin-bottom: 4px; }
         .api-info .url { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; }
         .api-info .interval-tag { 
@@ -133,44 +133,66 @@
             vertical-align: middle; color: var(--text-muted);
         }
 
-        /* Status Big Number */
+        /* Status Grande */
         .status-display { text-align: right; }
         .status-code { font-size: 1.8rem; font-weight: 800; line-height: 1; }
         .status-text { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 
-        /* Cores de Status */
-        .s-2xx { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,157,0.3); }
-        .s-4xx { color: var(--neon-warn); text-shadow: 0 0 10px rgba(255,184,0,0.3); }
-        .s-5xx { color: var(--neon-red); text-shadow: 0 0 10px rgba(255,56,100,0.3); }
-
         /* Chart Area */
         .chart-wrapper {
-            height: 120px;
+            height: 100px;
             width: 100%;
-            margin: 10px 0;
+            margin: 5px 0 15px 0;
         }
 
-        /* Stats Footer */
+        /* LISTA DE VOLUMETRIA (NOVA ÁREA) */
+        .volumetry-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 0;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 10px;
+            min-height: 40px;
+        }
+
+        .vol-tag {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid transparent;
+        }
+        .vol-tag b { font-weight: 700; color: #fff; }
+
+        /* Cores de Status */
+        .c-2xx { color: var(--neon-green); }
+        .c-4xx { color: var(--neon-warn); }
+        .c-5xx { color: var(--neon-red); }
+        
+        .b-2xx { border-color: rgba(0, 255, 157, 0.2); }
+        .b-4xx { border-color: rgba(255, 184, 0, 0.2); }
+        .b-5xx { border-color: rgba(255, 56, 100, 0.2); }
+
+        /* Stats Footer (Total Geral) */
         .stats-footer {
             display: flex;
             justify-content: space-between;
-            border-top: 1px solid var(--glass-border);
-            padding-top: 12px;
-            margin-top: auto;
             font-size: 0.75rem;
             color: var(--text-muted);
+            margin-top: auto;
         }
         .stat-group b { color: white; display: block; font-size: 0.9rem; }
 
         /* Botão Remover */
         .btn-remove {
-            position: absolute;
-            top: 20px; right: 20px;
-            background: none; border: none;
-            color: var(--glass-border);
-            cursor: pointer;
-            font-size: 1.2rem;
-            line-height: 0.5;
+            position: absolute; top: 20px; right: 20px;
+            background: none; border: none; color: var(--glass-border);
+            cursor: pointer; font-size: 1.2rem; line-height: 0.5;
             transition: color 0.2s;
         }
         .btn-remove:hover { color: var(--neon-red); }
@@ -220,7 +242,10 @@
         </header>
 
         <div class="monitor-grid" id="grid">
+            <div style="grid-column: 1/-1; text-align: center; padding-top: 50px; color: var(--glass-border);">
+                Nenhuma API monitorada. Clique em "+ Adicionar Monitor".
             </div>
+        </div>
     </div>
 
     <div class="modal-wrap" id="modal">
@@ -240,7 +265,7 @@
             <div class="input-group">
                 <label>Intervalo de Ping (Minutos)</label>
                 <input type="number" id="inpInterval" value="1" min="0.1" step="0.1">
-                <small style="color: var(--text-muted); font-size: 0.7rem;">Aceita decimais (ex: 0.5 = 30 seg)</small>
+                <small style="color: var(--text-muted); font-size: 0.7rem;">Aceita decimais (ex: 0.1 = 6 seg)</small>
             </div>
 
             <div class="modal-footer">
@@ -258,12 +283,8 @@
 
         // --- INICIALIZAÇÃO ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Loop principal de verificação (Roda a cada 1s para checar quem precisa de ping)
+            // Loop principal de verificação (Roda a cada 1s)
             setInterval(engineLoop, 1000);
-            
-            // Dados de exemplo
-            addMonitorData('Auth Service', 'https://auth.sys.com', 0.2); // 0.2 min = 12 seg
-            addMonitorData('Database API', 'https://db.sys.com', 0.5); // 0.5 min = 30 seg
         });
 
         // --- LÓGICA DE MONITORAMENTO (ENGINE) ---
@@ -271,8 +292,7 @@
             const now = Date.now();
             
             monitors.forEach(m => {
-                // Verifica se está na hora de pingar baseada no intervalo configurado
-                // (Intervalo em minutos * 60000 = ms)
+                // Checa intervalo configurado pelo usuário
                 if (now - m.lastPingTime >= (m.interval * 60000)) {
                     performPing(m);
                 }
@@ -282,47 +302,40 @@
         async function performPing(monitor) {
             monitor.lastPingTime = Date.now();
             
-            // Simulação de resposta da API com status codes reais
+            // Simulação de resposta da API
             const result = await simulateNetworkCall();
             
             // Registra histórico
             monitor.history.push({
                 x: monitor.lastPingTime,
                 y: result.latency,
-                code: result.code // Importante: Guardamos o status code no ponto do gráfico
+                code: result.code 
             });
 
-            // Volumetria (Contagem de Status)
+            // Lógica de Volumetria (Agrupa contagem por Status Code)
             if (!monitor.stats[result.code]) monitor.stats[result.code] = 0;
             monitor.stats[result.code]++;
+            
             monitor.totalCalls++;
 
-            // Limpeza de buffer (evitar memória infinita)
+            // Limpeza de buffer
             if (monitor.history.length > 300) monitor.history.shift();
 
-            // Atualiza UI
             updateCard(monitor, result);
         }
 
         function simulateNetworkCall() {
             return new Promise(resolve => {
-                // Probabilidades para demonstração:
-                // 70% chance de 200 OK
-                // 10% chance de 201 Created
-                // 10% chance de 422 Unprocessable
-                // 5% chance de 429 Too Many Requests
-                // 5% chance de 500 Server Error
-                
+                // Probabilidades Variadas para testes de volumetria
                 const rand = Math.random();
                 let code = 200;
-                if (rand > 0.70) code = 201;
-                if (rand > 0.80) code = 422;
-                if (rand > 0.90) code = 429;
-                if (rand > 0.95) code = 500;
+                if (rand > 0.60) code = 201; // Created
+                if (rand > 0.80) code = 422; // Unprocessable
+                if (rand > 0.90) code = 429; // Rate Limit
+                if (rand > 0.95) code = 500; // Server Error
 
-                // Latência varia se for erro
                 let latency = Math.floor(Math.random() * 150) + 20;
-                if (code >= 400) latency += 200; // Erros geralmente demoram mais ou são timeouts rápidos
+                if (code >= 400) latency += 200; 
 
                 setTimeout(() => {
                     resolve({ code, latency });
@@ -332,21 +345,24 @@
 
         // --- GERENCIAMENTO DE DADOS ---
         function addMonitorData(name, url, interval) {
+            // Remove mensagem de "vazio" se existir
+            const grid = document.getElementById('grid');
+            if(monitors.length === 0) grid.innerHTML = '';
+
             const id = Date.now() + Math.random();
             const monitor = {
                 id,
                 name,
                 url,
                 interval: parseFloat(interval),
-                lastPingTime: 0, // Força ping imediato
+                lastPingTime: 0,
                 totalCalls: 0,
-                stats: {}, // Mapa ex: { 200: 10, 500: 2 }
+                stats: {}, // Objeto para contagem: { 200: 10, 500: 2 }
                 history: []
             };
             monitors.push(monitor);
             renderCard(monitor);
-            // Ping imediato ao criar
-            performPing(monitor);
+            performPing(monitor); // Primeiro ping imediato
         }
 
         // --- RENDERIZAÇÃO E UI ---
@@ -364,8 +380,8 @@
                         <div class="url">${m.url}</div>
                     </div>
                     <div class="status-display">
-                        <div class="status-code s-2xx" id="code-${m.id}">--</div>
-                        <div class="status-text" id="text-${m.id}">Aguardando</div>
+                        <div class="status-code c-2xx" id="code-${m.id}">--</div>
+                        <div class="status-text" id="text-${m.id}">Iniciando</div>
                     </div>
                 </div>
 
@@ -373,18 +389,18 @@
                     <canvas id="chart-${m.id}"></canvas>
                 </div>
 
+                <small style="color:var(--text-muted); margin-bottom:4px;">Volumetria por Status:</small>
+                <div class="volumetry-list" id="vol-list-${m.id}">
+                    </div>
+
                 <div class="stats-footer">
                     <div class="stat-group">
                         <b id="total-${m.id}">0</b>
-                        Calls
+                        Chamadas Totais
                     </div>
                     <div class="stat-group">
                         <b id="lat-${m.id}">0ms</b>
-                        Latência
-                    </div>
-                    <div class="stat-group" style="text-align: right;">
-                        <b id="top-status-${m.id}">--</b>
-                        Volumetria Recente
+                        Latência Atual
                     </div>
                 </div>
             `;
@@ -393,32 +409,60 @@
         }
 
         function updateCard(m, result) {
-            // 1. Atualiza Status Principal
+            // 1. Atualiza Status Principal (Cabeçalho)
             const codeEl = document.getElementById(`code-${m.id}`);
             const textEl = document.getElementById(`text-${m.id}`);
             
             codeEl.innerText = result.code;
-            codeEl.className = 'status-code ' + getStatusClass(result.code);
+            codeEl.className = 'status-code ' + getColorClass(result.code);
             textEl.innerText = getStatusText(result.code);
 
             // 2. Atualiza Footer Stats
             document.getElementById(`total-${m.id}`).innerText = m.totalCalls;
             document.getElementById(`lat-${m.id}`).innerText = result.latency + 'ms';
             
-            // Mostra o status mais frequente ou o último erro
-            const statsStr = Object.entries(m.stats)
-                .map(([code, count]) => `${code} (${count})`)
-                .join(' | ');
-            document.getElementById(`top-status-${m.id}`).innerText = statsStr.substring(0, 25) + '...';
+            // 3. ATUALIZA A LISTA DE VOLUMETRIA (A novidade)
+            updateVolumetryList(m);
 
-            // 3. Atualiza Gráfico
+            // 4. Atualiza Gráfico
             updateChart(m);
         }
 
-        function getStatusClass(code) {
-            if (code >= 200 && code < 300) return 's-2xx';
-            if (code >= 400 && code < 500) return 's-4xx';
-            if (code >= 500) return 's-5xx';
+        function updateVolumetryList(m) {
+            const listContainer = document.getElementById(`vol-list-${m.id}`);
+            listContainer.innerHTML = ''; // Limpa para redesenhar
+
+            // Ordena as chaves (ex: 200, 201, 500...)
+            const codes = Object.keys(m.stats).sort();
+
+            codes.forEach(code => {
+                const count = m.stats[code];
+                const colorClass = getColorClass(parseInt(code)); // c-2xx
+                const borderClass = getBorderClass(parseInt(code)); // b-2xx
+
+                const tag = document.createElement('div');
+                tag.className = `vol-tag ${borderClass}`;
+                
+                // Ex: [200] 15x
+                tag.innerHTML = `
+                    <span class="${colorClass}" style="font-weight:bold">${code}</span>
+                    <span>${count}x</span>
+                `;
+                listContainer.appendChild(tag);
+            });
+        }
+
+        // Helpers de Estilo
+        function getColorClass(code) {
+            if (code >= 200 && code < 300) return 'c-2xx';
+            if (code >= 400 && code < 500) return 'c-4xx';
+            if (code >= 500) return 'c-5xx';
+            return '';
+        }
+        function getBorderClass(code) {
+            if (code >= 200 && code < 300) return 'b-2xx';
+            if (code >= 400 && code < 500) return 'b-4xx';
+            if (code >= 500) return 'b-5xx';
             return '';
         }
 
@@ -428,10 +472,10 @@
             if (code === 422) return 'UNPROCESSABLE';
             if (code === 429) return 'RATE LIMIT';
             if (code === 500) return 'SERVER ERROR';
-            return 'UNKNOWN';
+            return 'UNK';
         }
 
-        // --- CHART.JS AVANÇADO ---
+        // --- CHART.JS ---
         function initChart(m) {
             const ctx = document.getElementById(`chart-${m.id}`).getContext('2d');
             
@@ -439,21 +483,18 @@
                 type: 'line',
                 data: {
                     datasets: [{
-                        label: 'Latência',
                         data: [],
                         borderWidth: 2,
                         fill: true,
                         backgroundColor: 'rgba(255, 255, 255, 0.02)',
                         tension: 0.3,
                         pointRadius: 2,
-                        // Segment Styling: O segredo para colorir a linha baseado no status
                         segment: {
                             borderColor: ctx => {
-                                // Pega o status code do ponto anterior
                                 const code = ctx.p0.raw.code; 
-                                if (code >= 500) return '#ff3864'; // Vermelho
-                                if (code >= 400) return '#ffb800'; // Amarelo
-                                return '#00ff9d'; // Verde
+                                if (code >= 500) return '#ff3864';
+                                if (code >= 400) return '#ffb800';
+                                return '#00ff9d';
                             }
                         }
                     }]
@@ -464,12 +505,7 @@
                     animation: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { 
-                            type: 'linear', 
-                            display: false,
-                            min: Date.now() - (globalTimeWindow * 60000),
-                            max: Date.now()
-                        },
+                        x: { type: 'linear', display: false, min: 0, max: 0 },
                         y: { display: false, min: 0 }
                     }
                 }
@@ -483,12 +519,9 @@
             const now = Date.now();
             const minTime = now - (globalTimeWindow * 60000);
 
-            // Filtra dados para mostrar apenas a janela de tempo selecionada
             chart.data.datasets[0].data = m.history.filter(d => d.x > minTime);
-            
             chart.options.scales.x.min = minTime;
             chart.options.scales.x.max = now;
-            
             chart.update();
         }
 
@@ -496,8 +529,6 @@
             globalTimeWindow = min;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
-            // Força redraw de todos os gráficos
             monitors.forEach(m => updateChart(m));
         }
 
@@ -513,7 +544,6 @@
             if (name && url && interval) {
                 addMonitorData(name, url, interval);
                 closeModal();
-                // Reset inputs
                 document.getElementById('inpName').value = '';
                 document.getElementById('inpUrl').value = '';
             } else {
@@ -529,7 +559,6 @@
             }
             document.getElementById(`card-${id}`).remove();
         }
-
     </script>
 </body>
 </html>

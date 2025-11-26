@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | Seconds Edition</title>
+    <title>Sentinel OpsCenter | Stable</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -12,17 +12,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- THEME CONFIG (DARK NEON) --- */
+        /* --- THEME CONFIG --- */
         :root {
             --bg-deep: #050508;
             --glass-panel: rgba(20, 20, 30, 0.6);
-            --glass-modal: #0f1015; /* Fundo sólido escuro para evitar transparência excessiva */
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-modal: #0f1015;
+            --glass-border: rgba(255, 255, 255, 0.1);
             
             --text-main: #ffffff;
             --text-muted: #8b9bb4;
 
-            /* Cores Neon */
             --neon-blue: #00f3ff;
             --neon-green: #0aff68;
             --neon-red: #ff0f4b;
@@ -115,7 +114,7 @@
 
         .detail-panel {
             width: 95%; max-width: 1300px; height: 90vh;
-            background: #0f1015; /* Fundo Sólido */
+            background: #0f1015;
             border: 1px solid var(--glass-border); border-radius: 16px;
             box-shadow: 0 50px 100px rgba(0,0,0,0.9);
             display: flex; flex-direction: column;
@@ -159,13 +158,14 @@
         .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
 
-        /* --- FORMS (Fixed Styles) --- */
+        /* --- FORMS & MODALS --- */
         .modal-form {
             background: #121218; width: 450px; padding: 35px; border-radius: 16px; 
             border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
+        /* Alterado para 'text' para evitar validação nativa bugada, validaremos no JS */
         .form-group input { 
             width: 100%; padding: 14px; background: rgba(255,255,255,0.03); 
             border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s;
@@ -219,20 +219,14 @@
                     <div class="kpi-card"><label>Total Chamadas</label><div class="val" id="kpiTotal">0</div></div>
                     <div class="kpi-card"><label>Taxa de Erro</label><div class="val" id="kpiErrorRate">0%</div></div>
                 </div>
-
                 <div class="main-chart-box">
                     <span class="section-label">LINHA DO TEMPO (LATÊNCIA & STATUS)</span>
-                    <div style="flex:1; width:100%; position: relative;">
-                        <canvas id="mainChart"></canvas>
-                    </div>
+                    <div style="flex:1; width:100%; position: relative;"><canvas id="mainChart"></canvas></div>
                 </div>
-
                 <div class="sidebar-col">
                     <div class="donut-box">
                         <span class="section-label">HTTP CODES</span>
-                        <div style="height: 240px; position: relative; display: flex; justify-content: center;">
-                            <canvas id="donutChart"></canvas>
-                        </div>
+                        <div style="height: 240px; position: relative; display: flex; justify-content: center;"><canvas id="donutChart"></canvas></div>
                     </div>
                     <div class="log-box">
                         <span class="section-label" style="border-color: #666;">LIVE LOGS</span>
@@ -256,7 +250,7 @@
             </div>
             <div class="form-group">
                 <label>Intervalo de Checagem (Segundos)</label>
-                <input type="number" id="inpInterval" value="30" min="1" step="1">
+                <input type="text" id="inpInterval" value="30" placeholder="Ex: 30">
             </div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
@@ -281,8 +275,8 @@
 
     <script>
         // --- CORE DATA & STATE ---
-        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_v4_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_ops_v4_config')) || {};
+        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_v5_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_ops_v5_config')) || {};
         let activeMonitorId = null;
         
         let mainChartInst = null;
@@ -291,14 +285,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             if (config.publicKey) emailjs.init(config.publicKey);
             renderTiles();
-            setInterval(engineTick, 1000); // 1s Heartbeat
+            setInterval(engineTick, 1000); 
         });
 
         // --- ENGINE ---
         function engineTick() {
             const now = Date.now();
             monitors.forEach(m => {
-                // Cálculo em milissegundos: intervalo (segundos) * 1000
+                // Intervalo em SEGUNDOS * 1000 = MS
                 if (now - m.lastCheck >= (m.interval * 1000)) runCheck(m);
             });
         }
@@ -381,7 +375,6 @@
             if(!m) return;
 
             document.getElementById('detailOverlay').classList.add('active');
-            
             document.getElementById('detailName').innerText = m.name;
             document.getElementById('detailUrl').innerText = m.url;
             document.getElementById('detailInterval').innerText = `Sync: ${m.interval}s`;
@@ -403,7 +396,7 @@
             if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; }
             else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
 
-            const sEl = document.getElementById('kpiStatus'); sEl.innerText = text; sEl.style.color = color;
+            document.getElementById('kpiStatus').innerText = text; document.getElementById('kpiStatus').style.color = color;
             document.getElementById('kpiLat').innerText = m.lastLatency || '--';
             document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
 
@@ -424,11 +417,10 @@
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
                 mainChartInst.data.datasets[0].borderColor = color;
-                
-                // Neon Gradient
                 const gradient = mainChartInst.ctx.createLinearGradient(0,0,0,300);
-                if(color==='#0aff68') { gradient.addColorStop(0,'rgba(10,255,104,0.3)'); gradient.addColorStop(1,'rgba(10,255,104,0)'); }
-                else if(color==='#ff0f4b') { gradient.addColorStop(0,'rgba(255,15,75,0.3)'); gradient.addColorStop(1,'rgba(255,15,75,0)'); }
+                // Simple color switch for gradient
+                if(color=='#0aff68') { gradient.addColorStop(0,'rgba(10,255,104,0.3)'); gradient.addColorStop(1,'rgba(10,255,104,0)'); }
+                else if(color=='#ff0f4b') { gradient.addColorStop(0,'rgba(255,15,75,0.3)'); gradient.addColorStop(1,'rgba(255,15,75,0)'); }
                 else { gradient.addColorStop(0,'rgba(255,145,0,0.3)'); gradient.addColorStop(1,'rgba(255,145,0,0)'); }
                 
                 mainChartInst.data.datasets[0].backgroundColor = gradient;
@@ -446,7 +438,7 @@
         function initDetailCharts(m) {
             if(mainChartInst) mainChartInst.destroy();
             if(donutChartInst) donutChartInst.destroy();
-
+            
             Chart.defaults.color = '#8b9bb4';
             Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
@@ -456,7 +448,6 @@
                 data: { datasets: [{ data: m.history, borderColor: '#00f3ff', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 }] },
                 options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
-
             const ctxDonut = document.getElementById('donutChart').getContext('2d');
             donutChartInst = new Chart(ctxDonut, {
                 type: 'doughnut',
@@ -465,25 +456,42 @@
             });
         }
 
-        // --- MANAGERS ---
+        // --- ADD MONITOR FIXED FUNCTION ---
         function addMonitor() {
-            const name = document.getElementById('inpName').value;
-            const url = document.getElementById('inpUrl').value;
-            const intervalVal = document.getElementById('inpInterval').value;
-            
-            const interval = parseInt(intervalVal); // INTEIRO (SEGUNDOS)
+            try {
+                const name = document.getElementById('inpName').value.trim();
+                const url = document.getElementById('inpUrl').value.trim();
+                let intervalRaw = document.getElementById('inpInterval').value;
+                
+                // Tratamento agressivo: troca virgula por ponto
+                intervalRaw = intervalRaw.replace(',', '.');
+                const interval = parseFloat(intervalRaw);
 
-            if(name && url && interval && interval > 0) {
+                if (!name || !url) {
+                    alert("Por favor, preencha Nome e URL.");
+                    return;
+                }
+                if (isNaN(interval) || interval <= 0) {
+                    alert("Intervalo inválido. Digite um número em segundos (Ex: 30).");
+                    return;
+                }
+
                 monitors.push({
-                    id: Date.now(), name, url, interval: interval,
+                    id: Date.now(), name: name, url: url, interval: interval,
                     history: [], stats: {}, errorsSeq: 0
                 });
-                saveData(); renderTiles(); closeModals();
                 
+                saveData();
+                renderTiles();
+                closeModals();
+                
+                // Limpeza
                 document.getElementById('inpName').value = '';
                 document.getElementById('inpUrl').value = '';
-            } else {
-                alert("Por favor, preencha todos os campos.");
+                document.getElementById('inpInterval').value = '30';
+            } catch (e) {
+                console.error(e);
+                alert("Erro ao salvar: " + e.message);
             }
         }
 
@@ -515,11 +523,11 @@
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_ops_v4_config', JSON.stringify(config));
+            localStorage.setItem('sentinel_ops_v5_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
             closeModals();
         }
-        function saveData() { localStorage.setItem('sentinel_ops_v4_monitors', JSON.stringify(monitors)); }
+        function saveData() { localStorage.setItem('sentinel_ops_v5_monitors', JSON.stringify(monitors)); }
         
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') populateConfig(); }
         function populateConfig() {

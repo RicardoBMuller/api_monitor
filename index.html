@@ -3,213 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | Fixed</title>
+    <title>Sentinel OpsCenter | Dark Enterprise</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
-        /* --- THEME VARS --- */
+        /* --- THEME CONFIG (DARK NEON) --- */
         :root {
-            --bg-body: #0b0c10;
-            --bg-card: #14161f;
-            --border-subtle: rgba(255, 255, 255, 0.1);
+            --bg-deep: #050508;
+            --glass-panel: rgba(20, 20, 30, 0.6);
+            --glass-modal: rgba(15, 15, 20, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.08);
             
-            --text-main: #e0e6ed;
-            --text-muted: #9ca3af;
-            
-            --brand-primary: #00a8cc; 
-            --status-ok: #10b981;
-            --status-warn: #f59e0b;
-            --status-crit: #ef4444;
-            
-            --font-ui: 'Inter', sans-serif;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+
+            /* Cores Neon */
+            --neon-blue: #00f3ff;
+            --neon-green: #0aff68;
+            --neon-red: #ff0f4b;
+            --neon-orange: #ff9100;
+            --neon-purple: #bc13fe;
+
+            --font-main: 'Outfit', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-main); }
 
         body {
-            background-color: var(--bg-body);
-            background-image: radial-gradient(circle at top center, #1b202e 0%, #0b0c10 60%);
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(188, 19, 254, 0.05), transparent 40%),
+                radial-gradient(circle at 80% 20%, rgba(0, 243, 255, 0.05), transparent 40%);
             color: var(--text-main);
-            font-family: var(--font-ui);
             height: 100vh;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         /* --- HEADER --- */
         header {
-            height: 60px;
-            border-bottom: 1px solid var(--border-subtle);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 24px;
-            background: rgba(11, 12, 16, 0.9);
-            backdrop-filter: blur(8px);
+            height: 65px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px;
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 8, 0.8);
+            backdrop-filter: blur(10px);
             z-index: 10;
         }
 
-        .brand { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        .brand span { color: var(--brand-primary); }
-        .live-indicator { width: 8px; height: 8px; background: var(--status-ok); border-radius: 50%; box-shadow: 0 0 8px var(--status-ok); animation: pulse 2s infinite; }
+        .brand { font-size: 1.4rem; letter-spacing: 1px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
+        .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+        .pulse { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
 
-        .btn-ghost {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
-            color: var(--text-main); padding: 8px 16px; border-radius: 6px; font-size: 0.85rem;
-            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+        .toolbar { display: flex; gap: 12px; }
+        .btn {
+            border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
         }
-        .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); }
-        .btn-primary { background: var(--brand-primary); color: #fff; border: none; font-weight: 500; }
-        .btn-primary:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(0, 168, 204, 0.3); }
+        .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
+        .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
+        .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* --- DASHBOARD TILES --- */
+        /* --- MAIN DASHBOARD (TILES) --- */
         .dashboard-grid {
-            padding: 24px; overflow-y: auto; display: grid;
+            padding: 30px; overflow-y: auto; display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px; align-content: start;
+            grid-auto-rows: min-content;
+            gap: 20px; align-content: start;
         }
 
+        /* Tile Style */
         .monitor-tile {
-            background: var(--bg-card); border: 1px solid var(--border-subtle);
-            border-left: 4px solid var(--border-subtle); border-radius: 8px; padding: 16px;
-            cursor: pointer; transition: all 0.2s ease;
+            background: var(--glass-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--glass-border); /* Status Border */
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative; overflow: hidden;
         }
-        .monitor-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.2); }
+        .monitor-tile:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.2); }
 
-        .tile-ok { border-left-color: var(--status-ok); }
-        .tile-warn { border-left-color: var(--status-warn); }
-        .tile-crit { border-left-color: var(--status-crit); }
+        /* Status Variations */
+        .tile-ok { border-left-color: var(--neon-green); }
+        .tile-warn { border-left-color: var(--neon-orange); }
+        .tile-crit { border-left-color: var(--neon-red); }
 
-        .tile-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .tile-title { font-size: 0.95rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .tile-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+        .tile-name { font-size: 1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
         .tile-url { font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-code); }
-        .tile-metrics { display: flex; align-items: baseline; gap: 8px; }
-        .tile-latency { font-size: 1.5rem; font-weight: 700; font-family: var(--font-code); }
-        .tile-unit { font-size: 0.8rem; color: var(--text-muted); }
-        .tile-status-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); }
+        
+        .tile-body { display: flex; align-items: baseline; gap: 8px; }
+        .tile-val { font-size: 2rem; font-weight: 700; color: #fff; font-family: var(--font-code); }
+        .tile-unit { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        
+        .tile-badge { font-size: 0.65rem; padding: 4px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); margin-left: auto; }
 
-        /* --- DETAIL MODAL (DRILL DOWN) --- */
+        /* --- DETAIL OVERLAY (THE "DYNATRACE" MODAL) --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
             z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s;
             display: flex; align-items: center; justify-content: center;
         }
         .overlay-backdrop.active { opacity: 1; pointer-events: all; }
 
-        .detail-glass-panel {
-            width: 90%; max-width: 1200px; height: 85vh; background: #111217;
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.8); display: flex; flex-direction: column;
+        .detail-panel {
+            width: 95%; max-width: 1300px; height: 90vh;
+            background: var(--glass-modal);
+            border: 1px solid var(--glass-border); border-radius: 16px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
+            display: flex; flex-direction: column;
             transform: scale(0.95); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        .overlay-backdrop.active .detail-glass-panel { transform: scale(1); }
+        .overlay-backdrop.active .detail-panel { transform: scale(1); }
 
-        .detail-header { padding: 20px 30px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); }
-        .dh-title h2 { font-size: 1.4rem; font-weight: 600; color: #fff; }
-        .dh-meta { display: flex; gap: 15px; margin-top: 5px; color: var(--text-muted); font-size: 0.85rem; }
-        .dh-actions { display: flex; gap: 10px; }
+        /* Detail Header */
+        .detail-head {
+            padding: 25px 35px; border-bottom: 1px solid var(--glass-border);
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02);
+        }
+        .dh-info h2 { font-size: 1.6rem; font-weight: 600; color: #fff; margin-bottom: 5px; }
+        .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
+        
+        .dh-actions { display: flex; gap: 15px; }
 
-        .detail-body { flex: 1; padding: 30px; overflow-y: auto; display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 25px; }
+        /* Detail Body Grid */
+        .detail-body {
+            flex: 1; padding: 30px; overflow-y: auto;
+            display: grid;
+            grid-template-columns: 3fr 1fr; /* 75% Chart | 25% Sidebar */
+            grid-template-rows: auto 1fr;
+            gap: 30px;
+        }
 
+        /* KPIs */
         .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .kpi-card { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 15px; border: 1px solid var(--border-subtle); }
-        .kpi-card label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 5px; }
-        .kpi-card .val { font-size: 1.8rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
+        .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
+        .kpi-card label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; letter-spacing: 1px; }
+        .kpi-card .val { font-size: 2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
 
-        .main-chart-container { background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border-subtle); padding: 20px; min-height: 300px; display: flex; flex-direction: column; }
-        .section-title { font-size: 0.9rem; font-weight: 600; color: var(--text-muted); margin-bottom: 15px; display: block; }
+        /* Charts */
+        .main-chart-box {
+            background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px;
+            min-height: 350px; display: flex; flex-direction: column; position: relative;
+        }
+        .section-label { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; }
 
-        .sidebar-info { display: flex; flex-direction: column; gap: 20px; }
-        .donut-container { background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border-subtle); padding: 20px; height: 300px; }
-        .log-table-container { flex: 1; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 15px; font-family: var(--font-code); font-size: 0.8rem; overflow: hidden; background: #0d0e12; }
-        .log-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
-        .c-200 { color: var(--status-ok); } .c-500 { color: var(--status-crit); } .c-400 { color: var(--status-warn); }
+        .sidebar-col { display: flex; flex-direction: column; gap: 25px; }
+        .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 320px; }
+        
+        /* Logs */
+        .log-box {
+            flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;
+            font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column;
+        }
+        .log-list { overflow-y: auto; flex: 1; padding-right: 5px; }
+        .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
 
-        /* --- FIXED FORM MODALS (CSS CORRIGIDO) --- */
+        /* --- FORMS & MODALS --- */
         .modal-form {
-            background: #15171e; width: 420px; padding: 30px; 
-            border-radius: 12px; border: 1px solid var(--border-subtle);
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+            background: #121218; width: 450px; padding: 35px; border-radius: 16px; 
+            border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
         .form-group input { 
-            width: 100%; padding: 12px; background: rgba(0,0,0,0.3); 
-            border: 1px solid var(--border-subtle); color: #fff; border-radius: 6px; outline: none; 
-            font-size: 0.95rem; transition: 0.2s;
+            width: 100%; padding: 14px; background: rgba(255,255,255,0.03); 
+            border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s;
         }
-        .form-group input:focus { border-color: var(--brand-primary); background: rgba(0, 168, 204, 0.05); }
+        .form-group input:focus { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.05); }
 
-        /* AQUI ESTÁ A CORREÇÃO DO RODAPÉ */
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end; /* Alinha à direita */
-            gap: 12px; /* Espaço entre botões */
-            margin-top: 30px;
-        }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
 
-        .empty-placeholder { grid-column: 1/-1; text-align: center; margin-top: 100px; color: var(--text-muted); }
+        .empty-placeholder { grid-column: 1/-1; text-align: center; margin-top: 100px; color: var(--text-muted); opacity: 0.5; }
 
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        /* Animations */
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(10, 255, 104, 0); } }
     </style>
 </head>
 <body>
 
     <header>
         <div class="brand">
-            <div class="live-indicator"></div>
-            Sentinel <span>OpsCenter</span>
+            <div class="pulse"></div>
+            Sentinel <b>OpsCenter</b>
         </div>
-        <div style="display: flex; gap: 10px;">
-            <button class="btn-ghost" onclick="openModal('modalConfig')">⚙️ Config</button>
-            <button class="btn-ghost btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
+        <div style="display: flex; gap: 15px;">
+            <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Configurações</button>
+            <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
         </div>
     </header>
 
     <div class="dashboard-grid" id="tileGrid">
         <div class="empty-placeholder" id="emptyState">
-            <h3>Nenhum serviço monitorado</h3>
-            <p>Clique em "+ Novo Monitor" para começar.</p>
+            <div style="font-size: 3rem; margin-bottom: 10px;">📡</div>
+            <h3>Sem Telemetria Ativa</h3>
+            <p>Adicione um monitor para visualizar o status em tempo real.</p>
         </div>
     </div>
 
     <div class="overlay-backdrop" id="detailOverlay">
-        <div class="detail-glass-panel">
-            <div class="detail-header">
+        <div class="detail-panel">
+            <div class="detail-head">
                 <div>
-                    <div class="dh-title"><h2 id="detailName">Service Name</h2></div>
+                    <div class="dh-info"><h2 id="detailName">API Name</h2></div>
                     <div class="dh-meta"><span id="detailUrl">...</span><span id="detailInterval">...</span></div>
                 </div>
                 <div class="dh-actions">
-                    <button class="btn-ghost" style="border-color: var(--status-crit); color: var(--status-crit);" onclick="deleteCurrentMonitor()">Excluir</button>
-                    <button class="btn-ghost" onclick="closeDetail()">Fechar ✕</button>
+                    <button class="btn btn-glass" style="border-color: var(--neon-red); color: var(--neon-red);" onclick="deleteCurrentMonitor()">Excluir Monitor</button>
+                    <button class="btn btn-glass" onclick="closeDetail()">Fechar ✕</button>
                 </div>
             </div>
+
             <div class="detail-body">
                 <div class="kpi-deck">
-                    <div class="kpi-card"><label>Status</label><div class="val" id="kpiStatus" style="font-size: 1.2rem;">--</div></div>
-                    <div class="kpi-card"><label>Latência</label><div class="val"><span id="kpiLat">--</span> <span style="font-size:0.8rem; color:#666">ms</span></div></div>
-                    <div class="kpi-card"><label>Total Requests</label><div class="val" id="kpiTotal">0</div></div>
-                    <div class="kpi-card"><label>Error Rate</label><div class="val" id="kpiErrorRate">0%</div></div>
-                </div>
-                <div class="main-chart-container">
-                    <span class="section-title">Performance Timeline</span>
-                    <div style="flex:1; width:100%; position: relative;"><canvas id="mainChart"></canvas></div>
-                </div>
-                <div class="sidebar-info">
-                    <div class="donut-container">
-                        <span class="section-title">Status Distribution</span>
-                        <div style="height: 220px; position: relative;"><canvas id="donutChart"></canvas></div>
+                    <div class="kpi-card">
+                        <label>Status Saúde</label>
+                        <div class="val" id="kpiStatus" style="font-size: 1.4rem;">--</div>
                     </div>
-                    <div class="log-table-container">
-                        <span class="section-title" style="margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">Live Logs</span>
-                        <div id="logList"></div>
+                    <div class="kpi-card">
+                        <label>Latência Atual</label>
+                        <div class="val"><span id="kpiLat">--</span> <span style="font-size:0.9rem; color:#666">ms</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <label>Total Chamadas</label>
+                        <div class="val" id="kpiTotal">0</div>
+                    </div>
+                    <div class="kpi-card">
+                        <label>Taxa de Erro (5m)</label>
+                        <div class="val" id="kpiErrorRate">0%</div>
+                    </div>
+                </div>
+
+                <div class="main-chart-box">
+                    <span class="section-label">LINHA DO TEMPO (LATÊNCIA & STATUS)</span>
+                    <div style="flex:1; width:100%; position: relative;">
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="sidebar-col">
+                    <div class="donut-box">
+                        <span class="section-label">VOLUMETRIA HTTP</span>
+                        <div style="height: 240px; position: relative; display: flex; justify-content: center;">
+                            <canvas id="donutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="log-box">
+                        <span class="section-label" style="border-color: #666;">LIVE LOGS</span>
+                        <div class="log-list" id="logList">
+                            </div>
                     </div>
                 </div>
             </div>
@@ -218,57 +274,58 @@
 
     <div class="overlay-backdrop" id="modalAdd">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:25px;">Adicionar Monitor</h2>
+            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Novo Monitor</h2>
             <div class="form-group">
-                <label>Nome de Identificação</label>
-                <input type="text" id="inpName" placeholder="Ex: Checkout API">
+                <label>Nome do Serviço</label>
+                <input type="text" id="inpName" placeholder="Ex: Microsserviço Pagamentos">
             </div>
             <div class="form-group">
-                <label>Endpoint URL</label>
+                <label>URL Endpoint</label>
                 <input type="url" id="inpUrl" placeholder="https://api...">
             </div>
             <div class="form-group">
-                <label>Intervalo (Minutos)</label>
-                <input type="number" id="inpInterval" value="0.2" step="any">
+                <label>Intervalo de Checagem (Minutos)</label>
+                <input type="number" id="inpInterval" value="0.5" step="any">
             </div>
-            
             <div class="modal-actions">
-                <button class="btn-ghost" onclick="closeModals()">Cancelar</button>
-                <button class="btn-ghost btn-primary" onclick="addMonitor()">Salvar</button>
+                <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="addMonitor()">Salvar Monitor</button>
             </div>
         </div>
     </div>
 
     <div class="overlay-backdrop" id="modalConfig">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:25px;">Configurações</h2>
+            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Alertas EmailJS</h2>
             <div class="form-group"><label>Service ID</label><input type="text" id="cfgService"></div>
             <div class="form-group"><label>Template ID</label><input type="text" id="cfgTemplate"></div>
             <div class="form-group"><label>Public Key</label><input type="text" id="cfgKey"></div>
-            <div class="form-group"><label>Destinatário</label><input type="text" id="cfgDest"></div>
+            <div class="form-group"><label>Email Destino</label><input type="email" id="cfgDest"></div>
             <div class="modal-actions">
-                <button class="btn-ghost" onclick="closeModals()">Cancelar</button>
-                <button class="btn-ghost btn-primary" onclick="saveConfig()">Salvar</button>
+                <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="saveConfig()">Salvar</button>
             </div>
         </div>
     </div>
 
     <script>
-        // --- DATA & STATE ---
-        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_monitors')) || [];
-        let config = JSON.parse(localStorage.getItem('sentinel_ops_config')) || {};
+        // --- CORE DATA & STATE ---
+        let monitors = JSON.parse(localStorage.getItem('sentinel_ops_v3_monitors')) || [];
+        let config = JSON.parse(localStorage.getItem('sentinel_ops_v3_config')) || {};
         let activeMonitorId = null;
+        
+        // Chart Instances
         let mainChartInst = null;
         let donutChartInst = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (config.publicKey) emailjs.init(config.publicKey);
             renderTiles();
-            setInterval(loopEngine, 1000);
+            setInterval(engineTick, 1000); // 1s Heartbeat
         });
 
         // --- ENGINE ---
-        function loopEngine() {
+        function engineTick() {
             const now = Date.now();
             monitors.forEach(m => {
                 if (now - m.lastCheck >= (m.interval * 60000)) runCheck(m);
@@ -279,25 +336,32 @@
             m.lastCheck = Date.now();
             const res = await simulateNetwork(m);
             
+            // Push History
             m.history.push({ x: m.lastCheck, y: res.latency, code: res.code });
             if(m.history.length > 100) m.history.shift();
             
+            // Update Stats
             if(!m.stats) m.stats = {};
             m.stats[res.code] = (m.stats[res.code] || 0) + 1;
             m.totalRequests = (m.totalRequests || 0) + 1;
+            
+            // Current State
             m.lastCode = res.code;
             m.lastLatency = res.latency;
 
+            // Alert Logic
             if(res.code >= 400) m.errorsSeq = (m.errorsSeq || 0) + 1;
             else m.errorsSeq = 0;
             
             checkAlerts(m, res);
             saveData();
-            updateTile(m);
+            
+            // UI Reactivity
+            updateTile(m); 
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
-        // --- RENDER TILES ---
+        // --- TILES (DASHBOARD) ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             if(monitors.length === 0) {
@@ -320,32 +384,41 @@
             });
         }
 
+        function updateTile(m) {
+            const el = document.getElementById(`tile-${m.id}`);
+            if(el) updateTileElement(el, m);
+        }
+
         function updateTileElement(el, m) {
-            let sClass = 'tile-ok', sText = 'HEALTHY', sColor = 'var(--status-ok)';
-            if(m.lastCode >= 500) { sClass = 'tile-crit'; sText = 'CRIT'; sColor = 'var(--status-crit)'; }
-            else if(m.lastCode >= 400) { sClass = 'tile-warn'; sText = 'WARN'; sColor = 'var(--status-warn)'; }
-            else if(!m.lastCode) { sText = 'INIT'; sColor = '#666'; }
+            let sClass = 'tile-ok', sText = 'ONLINE', sColor = 'var(--neon-green)';
+            if(m.lastCode >= 500) { sClass = 'tile-crit'; sText = 'CRITICAL'; sColor = 'var(--neon-red)'; }
+            else if(m.lastCode >= 400) { sClass = 'tile-warn'; sText = 'WARNING'; sColor = 'var(--neon-orange)'; }
+            else if(!m.lastCode) { sText = 'WAITING'; sColor = '#666'; }
 
             el.className = `monitor-tile ${sClass}`;
             el.innerHTML = `
-                <div class="tile-header">
-                    <div><div class="tile-title">${m.name}</div><div class="tile-url">${m.url}</div></div>
-                    <div class="tile-status-badge" style="color:${sColor}; border:1px solid ${sColor}">${sText}</div>
+                <div class="tile-head">
+                    <div><div class="tile-name">${m.name}</div><div class="tile-url">${m.url}</div></div>
+                    <div class="tile-badge" style="color:${sColor}; border:1px solid ${sColor}">${sText}</div>
                 </div>
-                <div class="tile-metrics"><span class="tile-latency" style="color:${sColor}">${m.lastLatency || '--'}</span><span class="tile-unit">ms</span></div>
+                <div class="tile-body">
+                    <span class="tile-val" style="color:${sColor}">${m.lastLatency || '--'}</span>
+                    <span class="tile-unit">ms</span>
+                </div>
             `;
         }
 
-        // --- DETAIL VIEW ---
+        // --- DETAIL MODAL ---
         function openDetail(id) {
             activeMonitorId = id;
             const m = monitors.find(x => x.id === id);
             if(!m) return;
+
             document.getElementById('detailOverlay').classList.add('active');
             
             document.getElementById('detailName').innerText = m.name;
             document.getElementById('detailUrl').innerText = m.url;
-            document.getElementById('detailInterval').innerText = `Sync: ${m.interval}m`;
+            document.getElementById('detailInterval').innerText = `Sync: ${m.interval} min`;
 
             initDetailCharts(m);
             updateDetailView(m);
@@ -360,10 +433,11 @@
 
         function updateDetailView(m) {
             const code = m.lastCode || 0;
-            let color = '#10b981', text = 'HEALTHY';
-            if(code >= 500) { color = '#ef4444'; text = 'CRITICAL'; }
-            else if(code >= 400) { color = '#f59e0b'; text = 'WARNING'; }
+            let color = '#0aff68', text = 'SAUDÁVEL';
+            if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; }
+            else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
 
+            // KPIs
             const sEl = document.getElementById('kpiStatus'); sEl.innerText = text; sEl.style.color = color;
             document.getElementById('kpiLat').innerText = m.lastLatency || '--';
             document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
@@ -372,27 +446,45 @@
             const errs = recent.filter(x => x.code >= 400).length;
             const rate = recent.length ? ((errs / recent.length) * 100).toFixed(1) : 0;
             const rEl = document.getElementById('kpiErrorRate');
-            rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#f59e0b' : '#fff';
+            rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
 
+            // Logs
             const logList = document.getElementById('logList');
             logList.innerHTML = '';
-            m.history.slice(-6).reverse().forEach(h => {
+            m.history.slice(-8).reverse().forEach(h => {
                 const date = new Date(h.x).toLocaleTimeString();
-                let cClass = h.code >= 500 ? 'c-500' : (h.code >= 400 ? 'c-400' : 'c-200');
-                logList.innerHTML += `<div class="log-row"><span style="color:#666">${date}</span><span class="log-code ${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
+                let cClass = h.code >= 500 ? 'c-err' : (h.code >= 400 ? 'c-warn' : 'c-ok');
+                logList.innerHTML += `<div class="log-row"><span style="color:#666">${date}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
+            // Update Charts
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
                 mainChartInst.data.datasets[0].borderColor = color;
-                mainChartInst.data.datasets[0].backgroundColor = getGradient(mainChartInst.ctx, color);
+                // Gradiente Dinâmico
+                const gradient = mainChartInst.ctx.createLinearGradient(0,0,0,300);
+                gradient.addColorStop(0, color.replace(')', ', 0.3)').replace('rgb', 'rgba').replace('#', 'rgba(')); // Simple hex fallback needed if using hex
+                // Manual Hex to RGBA for gradient
+                let r=0,g=0,b=0;
+                if(color=='#0aff68') {r=10;g=255;b=104;}
+                else if(color=='#ff0f4b') {r=255;g=15;b=75;}
+                else if(color=='#ff9100') {r=255;g=145;b=0;}
+                gradient.addColorStop(0, `rgba(${r},${g},${b},0.3)`);
+                gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+                
+                mainChartInst.data.datasets[0].backgroundColor = gradient;
                 mainChartInst.update('none');
             }
             if(donutChartInst) {
                 const codes = Object.keys(m.stats);
                 donutChartInst.data.labels = codes;
                 donutChartInst.data.datasets[0].data = codes.map(c => m.stats[c]);
-                donutChartInst.data.datasets[0].backgroundColor = codes.map(c => parseInt(c)>=500?'#ef4444':(parseInt(c)>=400?'#f59e0b':'#10b981'));
+                donutChartInst.data.datasets[0].backgroundColor = codes.map(c => {
+                    let ic = parseInt(c);
+                    if(ic >= 500) return '#ff0f4b';
+                    if(ic >= 400) return '#ff9100';
+                    return '#0aff68';
+                });
                 donutChartInst.update('none');
             }
         }
@@ -401,53 +493,51 @@
             if(mainChartInst) mainChartInst.destroy();
             if(donutChartInst) donutChartInst.destroy();
 
+            // Globals
+            Chart.defaults.color = '#8b9bb4';
+            Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+
             const ctxMain = document.getElementById('mainChart').getContext('2d');
             mainChartInst = new Chart(ctxMain, {
                 type: 'line',
-                data: { datasets: [{ data: m.history, borderColor: '#00a8cc', borderWidth: 2, fill: true, backgroundColor: 'rgba(0,0,0,0)', pointRadius: 0, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } } } }
+                data: { datasets: [{ data: m.history, borderColor: '#00f3ff', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 }] },
+                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
 
             const ctxDonut = document.getElementById('donutChart').getContext('2d');
             donutChartInst = new Chart(ctxDonut, {
                 type: 'doughnut',
                 data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { color: '#aaa', boxWidth: 10, font: {size: 10} } } }, cutout: '70%' }
+                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } }, cutout: '70%' }
             });
         }
 
-        function getGradient(ctx, color) {
-            const g = ctx.createLinearGradient(0, 0, 0, 300);
-            g.addColorStop(0, color.replace(')', ', 0.3)').replace('rgb', 'rgba')); g.addColorStop(1, 'rgba(0,0,0,0)');
-            return g;
-        }
-
-        // --- MANAGERS ---
+        // --- MANAGERS & FIXES ---
         function addMonitor() {
             const name = document.getElementById('inpName').value;
             const url = document.getElementById('inpUrl').value;
-            let interval = document.getElementById('inpInterval').value;
             
-            // CORREÇÃO DE VÍRGULA
-            if(interval) interval = interval.replace(',', '.');
+            // CORREÇÃO DO BOTÃO SALVAR: Trata vírgula e converte
+            let intervalVal = document.getElementById('inpInterval').value;
+            intervalVal = intervalVal.replace(',', '.'); // Troca virgula por ponto
+            const interval = parseFloat(intervalVal);
 
-            if(name && url && interval) {
+            if(name && url && !isNaN(interval) && interval > 0) {
                 monitors.push({
-                    id: Date.now(), name, url, interval: parseFloat(interval),
+                    id: Date.now(), name, url, interval: interval,
                     history: [], stats: {}, errorsSeq: 0
                 });
                 saveData(); renderTiles(); closeModals();
                 
-                // Limpa campos
                 document.getElementById('inpName').value = '';
                 document.getElementById('inpUrl').value = '';
             } else {
-                alert("Preencha todos os campos corretamente.");
+                alert("Por favor, preencha todos os campos corretamente (use ponto ou vírgula para decimais).");
             }
         }
 
         function deleteCurrentMonitor() {
-            if(confirm("Excluir?")) {
+            if(confirm("Deseja realmente excluir este monitor?")) {
                 monitors = monitors.filter(m => m.id !== activeMonitorId);
                 saveData(); closeDetail(); renderTiles();
             }
@@ -456,16 +546,17 @@
         function simulateNetwork(m) {
             return new Promise(resolve => {
                 const r = Math.random();
-                let code = 200, lat = Math.floor(Math.random() * 50) + 20;
-                if(r > 0.85) { code = 500; lat += 200; } else if(r > 0.80) code = 429;
+                let code = 200, lat = Math.floor(Math.random() * 60) + 20;
+                if(r > 0.85) { code = 500; lat += 250; } else if(r > 0.80) code = 429;
                 setTimeout(() => resolve({ code, latency: lat }), 200);
             });
         }
 
         async function checkAlerts(m, res) {
+            // Regra: 5 erros seguidos e 15 min de intervalo
             if(m.errorsSeq >= 5 && (Date.now() - (m.lastAlert||0) > 15*60000) && config.serviceId) {
                 m.lastAlert = Date.now();
-                try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: "5 consecutive errors", to_email: config.destination }); } catch(e){}
+                try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: "5 Falhas Consecutivas Detectadas", to_email: config.destination }); } catch(e){}
             }
         }
 
@@ -474,11 +565,11 @@
             config.templateId = document.getElementById('cfgTemplate').value;
             config.publicKey = document.getElementById('cfgKey').value;
             config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_ops_config', JSON.stringify(config));
+            localStorage.setItem('sentinel_ops_v3_config', JSON.stringify(config));
             if(config.publicKey) emailjs.init(config.publicKey);
             closeModals();
         }
-        function saveData() { localStorage.setItem('sentinel_ops_monitors', JSON.stringify(monitors)); }
+        function saveData() { localStorage.setItem('sentinel_ops_v3_monitors', JSON.stringify(monitors)); }
         
         function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') populateConfig(); }
         function populateConfig() {
@@ -488,7 +579,6 @@
             document.getElementById('cfgDest').value = config.destination||'';
         }
         function closeModals() { document.getElementById('modalAdd').classList.remove('active'); document.getElementById('modalConfig').classList.remove('active'); }
-        function updateTile(m) { const el = document.getElementById(`tile-${m.id}`); if(el) updateTileElement(el, m); }
 
     </script>
 </body>

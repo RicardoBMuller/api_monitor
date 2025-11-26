@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentinel OpsCenter | V6.0 Final</title>
+    <title>Sentinel MVNO NuCel | APIs Alerts</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <style>
@@ -39,135 +40,77 @@
             color: var(--text-main);
             height: 100vh;
             overflow: hidden;
-            display: flex; /* Layout Flex para Sidebar + Conteúdo */
+            display: flex;
         }
 
-        /* --- LAYOUT ESTRUTURAL --- */
-        
-        /* 1. SIDEBAR (Histórico de Alertas) */
+        /* --- SIDEBAR --- */
         aside.sidebar {
             width: 320px;
             background: var(--bg-sidebar);
             border-right: 1px solid var(--glass-border);
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            z-index: 20;
+            display: flex; flex-direction: column; flex-shrink: 0; z-index: 20;
         }
-
         .sidebar-header {
-            height: 65px;
-            display: flex; align-items: center; padding: 0 20px;
+            height: 65px; display: flex; align-items: center; padding: 0 20px;
             border-bottom: 1px solid var(--glass-border);
             font-weight: 600; color: var(--text-muted); font-size: 0.9rem;
             text-transform: uppercase; letter-spacing: 1px;
         }
-
-        .alert-feed {
-            flex: 1; overflow-y: auto; padding: 0;
-        }
-        
+        .alert-feed { flex: 1; overflow-y: auto; padding: 0; }
         .alert-item {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            animation: slideInLeft 0.4s ease-out;
-            border-left: 3px solid transparent;
+            padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.03);
+            animation: slideInLeft 0.4s ease-out; border-left: 3px solid transparent;
         }
         .alert-item:hover { background: rgba(255,255,255,0.02); }
         .alert-item.crit { border-left-color: var(--neon-red); }
-        
         .alert-time { font-family: var(--font-code); font-size: 0.75rem; color: var(--text-muted); margin-bottom: 5px; }
         .alert-title { font-weight: 700; color: #fff; margin-bottom: 4px; font-size: 0.95rem; }
         .alert-msg { font-size: 0.85rem; color: var(--neon-red); }
 
-        /* 2. CONTEÚDO PRINCIPAL */
+        /* --- CONTEÚDO PRINCIPAL --- */
         main.content-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            flex: 1; display: flex; flex-direction: column;
             background-image: radial-gradient(circle at 50% 0%, rgba(0, 243, 255, 0.05), transparent 50%);
             position: relative;
         }
-
-        /* --- HEADER DO DASHBOARD --- */
         header {
-            height: 65px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 30px;
-            border-bottom: 1px solid var(--glass-border);
-            background: rgba(5, 5, 8, 0.6);
-            backdrop-filter: blur(10px);
+            height: 65px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; border-bottom: 1px solid var(--glass-border);
+            background: rgba(5, 5, 8, 0.6); backdrop-filter: blur(10px);
         }
-
         .brand { font-size: 1.4rem; letter-spacing: 1px; font-weight: 300; display: flex; align-items: center; gap: 10px; }
         .brand b { font-weight: 700; color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
         .pulse { width: 8px; height: 8px; background: var(--neon-green); border-radius: 50%; box-shadow: 0 0 10px var(--neon-green); animation: pulse 2s infinite; }
-
         .toolbar { display: flex; gap: 12px; }
-        .btn {
-            border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem;
-            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px;
-        }
+        .btn { border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
         .btn-glass { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: #ccc; }
         .btn-glass:hover { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.3); }
         .btn-primary { background: linear-gradient(135deg, var(--neon-blue), #0062ff); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.2); }
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 243, 255, 0.4); }
 
-        /* --- DASHBOARD TILES (CORRIGIDO) --- */
+        /* --- DASHBOARD TILES --- */
         .dashboard-grid {
-            flex: 1;
-            padding: 30px; 
-            overflow-y: auto; 
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            grid-auto-rows: 160px; /* Altura fixa para alinhar todos */
+            flex: 1; padding: 30px; overflow-y: auto; display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); grid-auto-rows: 160px;
             gap: 20px; align-content: start;
         }
-
         .monitor-tile {
-            background: var(--glass-panel);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-left: 4px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative; 
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between; /* Empurra o rodapé para baixo */
+            background: var(--glass-panel); backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-left: 4px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s ease;
+            position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between;
         }
         .monitor-tile:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-top-color: rgba(255,255,255,0.2); }
-
-        .tile-ok { border-left-color: var(--neon-green); }
-        .tile-warn { border-left-color: var(--neon-orange); }
-        .tile-crit { border-left-color: var(--neon-red); }
-
+        .tile-ok { border-left-color: var(--neon-green); } .tile-warn { border-left-color: var(--neon-orange); } .tile-crit { border-left-color: var(--neon-red); }
         .tile-head { margin-bottom: 10px; }
         .tile-name { font-size: 1.1rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
         .tile-url { font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-code); opacity: 0.7; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
-        
         .tile-val-big { font-size: 2.2rem; font-weight: 700; color: #fff; font-family: var(--font-code); line-height: 1; }
         .tile-unit { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; margin-left: 4px; }
+        .tile-footer { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: auto; }
+        .tile-badge { font-size: 0.7rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; background: rgba(255,255,255,0.05); border: 1px solid transparent; }
 
-        /* Footer para alinhar o badge na direita inferior */
-        .tile-footer {
-            display: flex;
-            justify-content: flex-end;
-            align-items: flex-end;
-            margin-top: auto; /* Empurra para o fundo */
-        }
-        
-        .tile-badge { 
-            font-size: 0.7rem; padding: 5px 10px; border-radius: 6px; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 1px;
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid transparent;
-        }
-
-        /* --- DETAIL OVERLAY (DYNATRACE STYLE) --- */
+        /* --- DETAIL OVERLAY --- */
         .overlay-backdrop {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
@@ -175,73 +118,43 @@
             display: flex; align-items: center; justify-content: center;
         }
         .overlay-backdrop.active { opacity: 1; pointer-events: all; }
-
         .detail-panel {
-            width: 95%; max-width: 1300px; height: 90vh;
-            background: var(--glass-modal);
+            width: 95%; max-width: 1300px; height: 90vh; background: var(--glass-modal);
             border: 1px solid var(--glass-border); border-radius: 16px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.9);
-            display: flex; flex-direction: column;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9); display: flex; flex-direction: column;
             transform: scale(0.95); transition: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
         .overlay-backdrop.active .detail-panel { transform: scale(1); }
-
         .detail-head {
             padding: 25px 35px; border-bottom: 1px solid var(--glass-border);
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255,255,255,0.02);
+            display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);
         }
         .dh-info h2 { font-size: 1.6rem; font-weight: 600; color: #fff; margin-bottom: 5px; }
         .dh-meta { display: flex; gap: 20px; color: var(--text-muted); font-size: 0.9rem; font-family: var(--font-code); }
         .dh-actions { display: flex; gap: 15px; }
-
-        .detail-body {
-            flex: 1; padding: 30px; overflow-y: auto;
-            display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 30px;
-        }
-
+        .detail-body { flex: 1; padding: 30px; overflow-y: auto; display: grid; grid-template-columns: 3fr 1fr; grid-template-rows: auto 1fr; gap: 30px; }
         .kpi-deck { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; }
         .kpi-card label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 8px; }
         .kpi-card .val { font-size: 2rem; font-weight: 600; font-family: var(--font-code); color: #fff; }
-
-        .main-chart-box {
-            background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px;
-            min-height: 350px; display: flex; flex-direction: column; position: relative;
-        }
-        /* Fix para chart canvas fill */
+        .main-chart-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 25px; min-height: 350px; display: flex; flex-direction: column; position: relative; }
         .chart-fill { position: relative; width: 100%; flex: 1; min-height: 0; }
-
         .sidebar-col { display: flex; flex-direction: column; gap: 25px; }
         .donut-box { background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; height: 320px; position: relative; display: flex; justify-content: center;}
-        
-        .log-box {
-            flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px;
-            font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column;
-        }
+        .log-box { flex: 1; background: #08080c; border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; font-family: var(--font-code); font-size: 0.85rem; overflow: hidden; display: flex; flex-direction: column; }
         .log-list { overflow-y: auto; flex: 1; padding-right: 5px; }
         .log-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
         .c-ok { color: var(--neon-green); } .c-warn { color: var(--neon-orange); } .c-err { color: var(--neon-red); }
         .section-label { font-size: 0.9rem; font-weight: 700; color: var(--text-muted); margin-bottom: 20px; display: block; border-left: 3px solid var(--neon-blue); padding-left: 10px; }
 
         /* --- FORMS --- */
-        .modal-form {
-            background: #121218; width: 450px; padding: 35px; border-radius: 16px; 
-            border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-        }
+        .modal-form { background: #121218; width: 450px; padding: 35px; border-radius: 16px; border: 1px solid var(--glass-border); box-shadow: 0 30px 60px rgba(0,0,0,0.8); }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600; }
-        .form-group input { 
-            width: 100%; padding: 14px; background: rgba(255,255,255,0.03); 
-            border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s;
-        }
+        .form-group input { width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: #fff; border-radius: 8px; outline: none; transition: 0.3s; }
         .form-group input:focus { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.05); }
         .modal-actions { display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px; }
-
-        .empty-placeholder { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            text-align: center; color: var(--text-muted); opacity: 0.5; 
-        }
+        .empty-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-muted); opacity: 0.5; }
 
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(10, 255, 104, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(10, 255, 104, 0); } }
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
@@ -260,16 +173,15 @@
         <header>
             <div class="brand">
                 <div class="pulse"></div>
-                Sentinel <b>OpsCenter</b>
+                Sentinel <b>MVNO NuCel</b>
             </div>
             <div class="toolbar">
                 <button class="btn btn-glass" onclick="openModal('modalConfig')">⚙️ Config</button>
-                <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Novo Monitor</button>
+                <button class="btn btn-primary" onclick="openModal('modalAdd')">+ Nova Monitoração</button>
             </div>
         </header>
 
-        <div class="dashboard-grid" id="tileGrid">
-            </div>
+        <div class="dashboard-grid" id="tileGrid"></div>
         
         <div class="empty-placeholder" id="emptyState" style="display: none;">
             <div style="font-size: 3rem; margin-bottom: 10px;">📡</div>
@@ -300,7 +212,7 @@
                 </div>
 
                 <div class="main-chart-box">
-                    <span class="section-label">LINHA DO TEMPO</span>
+                    <span class="section-label">LINHA DO TEMPO REAL (LATÊNCIA vs STATUS)</span>
                     <div class="chart-fill"><canvas id="mainChart"></canvas></div>
                 </div>
 
@@ -320,19 +232,10 @@
 
     <div class="overlay-backdrop" id="modalAdd" onclick="handleBackdropClick(event, 'modalAdd')">
         <div class="modal-form">
-            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Novo Monitor</h2>
-            <div class="form-group">
-                <label>Nome do Serviço</label>
-                <input type="text" id="inpName" placeholder="Ex: Backend Checkout">
-            </div>
-            <div class="form-group">
-                <label>URL Endpoint</label>
-                <input type="url" id="inpUrl" placeholder="https://api...">
-            </div>
-            <div class="form-group">
-                <label>Intervalo (Segundos)</label>
-                <input type="number" id="inpInterval" value="10" min="1">
-            </div>
+            <h2 style="color:#fff; margin-bottom:25px; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">Nova Monitoração</h2>
+            <div class="form-group"><label>Nome do Serviço</label><input type="text" id="inpName" placeholder="Ex: ECMS Contracts"></div>
+            <div class="form-group"><label>URL Endpoint</label><input type="url" id="inpUrl" placeholder="https://api..."></div>
+            <div class="form-group"><label>Intervalo (Segundos)</label><input type="number" id="inpInterval" value="10" min="1"></div>
             <div class="modal-actions">
                 <button class="btn btn-glass" onclick="closeModals()">Cancelar</button>
                 <button class="btn btn-primary" onclick="addMonitorSafe()">Salvar Monitor</button>
@@ -359,7 +262,6 @@
         let monitors = JSON.parse(localStorage.getItem('sentinel_v6_monitors')) || [];
         let config = JSON.parse(localStorage.getItem('sentinel_v6_config')) || {};
         let alertHistory = JSON.parse(localStorage.getItem('sentinel_v6_alerts')) || [];
-        
         let activeMonitorId = null;
         let mainChartInst = null;
         let donutChartInst = null;
@@ -376,7 +278,6 @@
         function engineTick() {
             const now = Date.now();
             monitors.forEach(m => {
-                // Ping based on Seconds
                 if (now - (m.lastCheck || 0) >= (m.interval * 1000)) runCheck(m);
             });
         }
@@ -386,7 +287,8 @@
             const res = await simulateNetwork(m);
             
             m.history.push({ x: m.lastCheck, y: res.latency, code: res.code });
-            if(m.history.length > 100) m.history.shift();
+            // Aumentei o histórico para permitir uma janela de tempo maior no gráfico
+            if(m.history.length > 300) m.history.shift(); 
             
             if(!m.stats) m.stats = {};
             m.stats[res.code] = (m.stats[res.code] || 0) + 1;
@@ -394,7 +296,6 @@
             m.lastCode = res.code;
             m.lastLatency = res.latency;
 
-            // Logic: Consecutive Errors
             if(res.code >= 400) m.errorsSeq = (m.errorsSeq || 0) + 1;
             else m.errorsSeq = 0;
             
@@ -404,174 +305,72 @@
             if(activeMonitorId === m.id) updateDetailView(m);
         }
 
-        // --- ALERTS LOGIC (REFINED) ---
+        // --- ALERTS ---
         function checkAlerts(m) {
             const now = Date.now();
-            // Cooldown: 5 min
             if (now - (m.lastAlert || 0) < 5 * 60000) return;
 
             let alertReason = null;
+            if (m.errorsSeq >= 5) alertReason = `Falha Contínua Detectada (5x)`;
 
-            // Rule 1: Consecutive Errors (>= 5)
-            if (m.errorsSeq >= 5) {
-                alertReason = `Falha Contínua Detectada (5x)`;
-            }
-
-            // Rule 2: Error Rate > 25% in last 5 minutes
             if (!alertReason) {
                 const fiveMinAgo = now - (5 * 60000);
                 const recentPoints = m.history.filter(h => h.x > fiveMinAgo);
-                
-                // Minimum samples to avoid false positives on start
                 if (recentPoints.length >= 5) {
                     const errors = recentPoints.filter(h => h.code >= 400).length;
                     const rate = errors / recentPoints.length;
-                    if (rate > 0.25) {
-                        alertReason = `Alta Taxa de Erro (${(rate*100).toFixed(1)}%)`;
-                    }
+                    if (rate > 0.25) alertReason = `Alta Taxa de Erro (${(rate*100).toFixed(1)}%)`;
                 }
             }
 
-            if (alertReason) {
-                triggerAlert(m, alertReason);
-            }
+            if (alertReason) triggerAlert(m, alertReason);
         }
 
         async function triggerAlert(m, reason) {
             m.lastAlert = Date.now();
-            
-            // Add to History
-            const alertObj = {
-                time: new Date().toLocaleString(),
-                api: m.name,
-                msg: reason
-            };
-            alertHistory.unshift(alertObj); // Add to top
-            if(alertHistory.length > 50) alertHistory.pop(); // Keep last 50
-            
+            const alertObj = { time: new Date().toLocaleTimeString(), api: m.name, msg: reason };
+            alertHistory.unshift(alertObj);
+            if(alertHistory.length > 50) alertHistory.pop();
             localStorage.setItem('sentinel_v6_alerts', JSON.stringify(alertHistory));
             renderAlertFeed();
-
-            // Send Email
             if (config.serviceId) {
-                try {
-                    await emailjs.send(config.serviceId, config.templateId, {
-                        api_name: m.name,
-                        message: reason,
-                        to_email: config.destination
-                    });
-                } catch(e) { console.error("Email error", e); }
+                try { await emailjs.send(config.serviceId, config.templateId, { api_name: m.name, message: reason, to_email: config.destination }); } catch(e) { console.error(e); }
             }
         }
 
         function renderAlertFeed() {
             const feed = document.getElementById('alertFeed');
-            if (alertHistory.length === 0) {
-                feed.innerHTML = '<div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta registrado</div>';
-                return;
-            }
-            
+            if (alertHistory.length === 0) { feed.innerHTML = '<div style="padding:20px; font-size:0.8rem; color:#555; text-align:center;">Nenhum alerta registrado</div>'; return; }
             feed.innerHTML = '';
             alertHistory.forEach(a => {
-                feed.innerHTML += `
-                    <div class="alert-item crit">
-                        <div class="alert-time">${a.time}</div>
-                        <div class="alert-title">${a.api}</div>
-                        <div class="alert-msg">${a.msg}</div>
-                    </div>
-                `;
+                feed.innerHTML += `<div class="alert-item crit"><div class="alert-time">${a.time}</div><div class="alert-title">${a.api}</div><div class="alert-msg">${a.msg}</div></div>`;
             });
         }
 
-        // --- TILES (CORRIGIDO ALINHAMENTO) ---
+        // --- TILES ---
         function renderTiles() {
             const grid = document.getElementById('tileGrid');
             const empty = document.getElementById('emptyState');
-
-            if(monitors.length === 0) {
-                empty.style.display = 'flex';
-                grid.innerHTML = ''; 
-                return;
-            }
+            if(monitors.length === 0) { empty.style.display = 'block'; grid.innerHTML = ''; return; }
             empty.style.display = 'none';
-            
             monitors.forEach(m => {
                 let el = document.getElementById(`tile-${m.id}`);
-                if(!el) {
-                    el = document.createElement('div');
-                    el.id = `tile-${m.id}`;
-                    el.onclick = () => openDetail(m.id);
-                    grid.appendChild(el);
-                }
+                if(!el) { el = document.createElement('div'); el.id = `tile-${m.id}`; el.onclick = () => openDetail(m.id); grid.appendChild(el); }
                 updateTileElement(el, m);
             });
         }
 
-        function updateTile(m) {
-            const el = document.getElementById(`tile-${m.id}`);
-            if(el) updateTileElement(el, m);
-        }
-
         function updateTileElement(el, m) {
             let sClass = 'tile-ok', sText = 'ONLINE', sColor = 'var(--neon-green)', sBorder = 'var(--neon-green)';
-            
             if(m.lastCode >= 500) { sClass = 'tile-crit'; sText = 'CRITICAL'; sColor = 'var(--neon-red)'; sBorder = 'var(--neon-red)'; }
             else if(m.lastCode >= 400) { sClass = 'tile-warn'; sText = 'WARNING'; sColor = 'var(--neon-orange)'; sBorder = 'var(--neon-orange)'; }
             else if(!m.lastCode) { sText = 'WAITING'; sColor = '#666'; sBorder = '#666'; }
-
             el.className = `monitor-tile ${sClass}`;
-            el.innerHTML = `
-                <div>
-                    <div class="tile-head">
-                        <div class="tile-name">${m.name}</div>
-                        <div class="tile-url">${m.url}</div>
-                    </div>
-                    <div class="tile-body">
-                        <span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span>
-                        <span class="tile-unit">ms</span>
-                    </div>
-                </div>
-                <div class="tile-footer">
-                    <div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div>
-                </div>
-            `;
+            el.innerHTML = `<div><div class="tile-head"><div class="tile-name">${m.name}</div><div class="tile-url">${m.url}</div></div><div class="tile-body"><span class="tile-val-big" style="color:${sColor}">${m.lastLatency || '--'}</span><span class="tile-unit">ms</span></div></div><div class="tile-footer"><div class="tile-badge" style="color:${sColor}; border-color:${sBorder}">${sText}</div></div>`;
         }
 
-        // --- ADD MONITOR (SAFE & IMMEDIATE) ---
-        function addMonitorSafe() {
-            try {
-                const nameInput = document.getElementById('inpName');
-                const urlInput = document.getElementById('inpUrl');
-                const intInput = document.getElementById('inpInterval');
-
-                const name = nameInput.value;
-                const url = urlInput.value;
-                let interval = parseInt(intInput.value);
-
-                if(!name || !url) { alert("Preencha nome e URL."); return; }
-                if(!interval || interval <= 0) interval = 10; 
-
-                const newMonitor = {
-                    id: Date.now(), name, url, interval,
-                    history: [], stats: {}, errorsSeq: 0
-                };
-
-                monitors.push(newMonitor);
-                saveData();
-                renderTiles();
-                closeModals();
-
-                nameInput.value = ''; urlInput.value = ''; intInput.value = '10';
-
-                // Force immediate check
-                runCheck(newMonitor);
-
-            } catch (e) { alert("Erro: " + e.message); }
-        }
-
-        // --- DETAIL VIEW ---
+        // --- DETAIL VIEW (TIMELINE CHART) ---
         function handleBackdropClick(e, id) { if(e.target.id === id) { if(id === 'detailOverlay') closeDetail(); else closeModals(); } }
-
         function openDetail(id) {
             activeMonitorId = id;
             const m = monitors.find(x => x.id === id);
@@ -584,50 +383,34 @@
             updateDetailView(m);
         }
 
-        function closeDetail() {
-            document.getElementById('detailOverlay').classList.remove('active');
-            activeMonitorId = null;
-            if(mainChartInst) mainChartInst.destroy();
-            if(donutChartInst) donutChartInst.destroy();
-        }
+        function closeDetail() { document.getElementById('detailOverlay').classList.remove('active'); activeMonitorId = null; if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy(); }
 
         function updateDetailView(m) {
-            const code = m.lastCode || 0;
-            let color = '#0aff68', text = 'SAUDÁVEL';
-            if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; }
-            else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
-
+            // KPIs e Logs (mantidos iguais)
+            const code = m.lastCode || 0; let color = '#0aff68', text = 'SAUDÁVEL';
+            if(code >= 500) { color = '#ff0f4b'; text = 'CRÍTICO'; } else if(code >= 400) { color = '#ff9100'; text = 'ATENÇÃO'; }
             document.getElementById('kpiStatus').innerText = text; document.getElementById('kpiStatus').style.color = color;
-            document.getElementById('kpiLat').innerText = m.lastLatency || '--';
-            document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
-
-            const recent = m.history.slice(-50);
-            const errs = recent.filter(x => x.code >= 400).length;
+            document.getElementById('kpiLat').innerText = m.lastLatency || '--'; document.getElementById('kpiTotal').innerText = m.totalRequests || 0;
+            const recent = m.history.slice(-50); const errs = recent.filter(x => x.code >= 400).length;
             const rate = recent.length ? ((errs / recent.length) * 100).toFixed(1) : 0;
-            const rEl = document.getElementById('kpiErrorRate');
-            rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
-
-            const logList = document.getElementById('logList');
-            logList.innerHTML = '';
+            const rEl = document.getElementById('kpiErrorRate'); rEl.innerText = `${rate}%`; rEl.style.color = rate > 0 ? '#ff9100' : '#fff';
+            const logList = document.getElementById('logList'); logList.innerHTML = '';
             m.history.slice(-8).reverse().forEach(h => {
-                const date = new Date(h.x).toLocaleTimeString();
                 let cClass = h.code >= 500 ? 'c-err' : (h.code >= 400 ? 'c-warn' : 'c-ok');
-                logList.innerHTML += `<div class="log-row"><span style="color:#666">${date}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
+                logList.innerHTML += `<div class="log-row"><span style="color:#666">${new Date(h.x).toLocaleTimeString()}</span><span class="${cClass}">${h.code}</span><span>${h.y}ms</span></div>`;
             });
 
+            // --- ATUALIZAÇÃO DO GRÁFICO DE TIMELINE EM TEMPO REAL ---
             if(mainChartInst) {
                 mainChartInst.data.datasets[0].data = m.history;
-                mainChartInst.data.datasets[0].borderColor = color;
-                const g = mainChartInst.ctx.createLinearGradient(0,0,0,300);
-                if(color=='#0aff68'){g.addColorStop(0,'rgba(10,255,104,0.3)');g.addColorStop(1,'rgba(10,255,104,0)');}
-                else if(color=='#ff0f4b'){g.addColorStop(0,'rgba(255,15,75,0.3)');g.addColorStop(1,'rgba(255,15,75,0)');}
-                else {g.addColorStop(0,'rgba(255,145,0,0.3)');g.addColorStop(1,'rgba(255,145,0,0)');}
-                mainChartInst.data.datasets[0].backgroundColor = g;
+                // Define a janela de tempo móvel (últimos 3 minutos)
+                const now = Date.now();
+                mainChartInst.options.scales.x.min = now - (3 * 60 * 1000);
+                mainChartInst.options.scales.x.max = now;
                 mainChartInst.update('none');
             }
             if(donutChartInst) {
-                const codes = Object.keys(m.stats);
-                donutChartInst.data.labels = codes;
+                const codes = Object.keys(m.stats); donutChartInst.data.labels = codes;
                 donutChartInst.data.datasets[0].data = codes.map(c => m.stats[c]);
                 donutChartInst.data.datasets[0].backgroundColor = codes.map(c => parseInt(c)>=500?'#ff0f4b':(parseInt(c)>=400?'#ff9100':'#0aff68'));
                 donutChartInst.update('none');
@@ -635,67 +418,59 @@
         }
 
         function initDetailCharts(m) {
-            if(mainChartInst) mainChartInst.destroy();
-            if(donutChartInst) donutChartInst.destroy();
-            Chart.defaults.color = '#8b9bb4';
-            Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+            if(mainChartInst) mainChartInst.destroy(); if(donutChartInst) donutChartInst.destroy();
+            Chart.defaults.color = '#8b9bb4'; Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
 
+            // --- CONFIGURAÇÃO DO GRÁFICO DE TIMELINE ---
             const ctxMain = document.getElementById('mainChart').getContext('2d');
             mainChartInst = new Chart(ctxMain, {
                 type: 'line',
-                data: { datasets: [{ data: m.history, borderColor: '#00f3ff', borderWidth: 2, fill: true, pointRadius: 0, tension: 0.3 }] },
-                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+                data: {
+                    datasets: [{
+                        data: m.history, borderWidth: 2, fill: true, pointRadius: 3, pointHoverRadius: 5, tension: 0.2,
+                        // Segment Styling: Muda a cor da linha e do preenchimento baseado no status do ponto
+                        segment: {
+                            borderColor: ctx => { const code = ctx.p1.raw.code; if(code>=500) return '#ff0f4b'; if(code>=400) return '#ff9100'; return '#0aff68'; },
+                            backgroundColor: ctx => {
+                                const code = ctx.p1.raw.code; let c = '#0aff68'; if(code>=500) c='#ff0f4b'; else if(code>=400) c='#ff9100';
+                                let r=0,g=0,b=0; if(c=='#0aff68'){r=10;g=255;b=104;} else if(c=='#ff0f4b'){r=255;g=15;b=75;} else {r=255;g=145;b=0;}
+                                return `rgba(${r},${g},${b},0.2)`;
+                            }
+                        },
+                        pointBackgroundColor: ctx => { const code = ctx.raw.code; if(code>=500) return '#ff0f4b'; if(code>=400) return '#ff9100'; return '#0aff68'; }
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, animation: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `Latência: ${c.parsed.y}ms (Status: ${c.raw.code})` } } },
+                    scales: {
+                        // Eixo X como Tempo
+                        x: { type: 'time', time: { unit: 'minute', displayFormats: { minute: 'HH:mm:ss' }, tooltipFormat: 'HH:mm:ss' }, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b9bb4', maxRotation: 0, autoSkip: true } },
+                        y: { title: { display: true, text: 'Latência (ms)', color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+                    }
+                }
             });
             const ctxDonut = document.getElementById('donutChart').getContext('2d');
-            donutChartInst = new Chart(ctxDonut, {
-                type: 'doughnut',
-                data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } }, cutout: '70%' }
-            });
+            donutChartInst = new Chart(ctxDonut, { type: 'doughnut', data: { labels: [], datasets: [{ data: [], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } }, cutout: '70%' } });
         }
 
         // --- MANAGERS ---
-        function deleteCurrentMonitor() {
-            if(confirm("Excluir?")) {
-                monitors = monitors.filter(m => m.id !== activeMonitorId);
-                saveData(); closeDetail(); renderTiles();
-            }
+        function addMonitorSafe() {
+            try {
+                const name = document.getElementById('inpName').value; const url = document.getElementById('inpUrl').value; let interval = parseInt(document.getElementById('inpInterval').value);
+                if(!name || !url) { alert("Preencha nome e URL."); return; } if(!interval || interval <= 0) interval = 10; 
+                const newM = { id: Date.now(), name, url, interval, history: [], stats: {}, errorsSeq: 0 };
+                monitors.push(newM); saveData(); renderTiles(); closeModals();
+                document.getElementById('inpName').value='';document.getElementById('inpUrl').value='';document.getElementById('inpInterval').value='10';
+                runCheck(newM);
+            } catch (e) { alert("Erro: " + e.message); }
         }
-
-        function simulateNetwork(m) {
-            return new Promise(resolve => {
-                const r = Math.random();
-                let code = 200, lat = Math.floor(Math.random() * 60) + 20;
-                if(r > 0.85) { code = 500; lat += 250; } else if(r > 0.80) code = 429;
-                setTimeout(() => resolve({ code, latency: lat }), 200);
-            });
-        }
-
-        function saveConfig() {
-            config.serviceId = document.getElementById('cfgService').value;
-            config.templateId = document.getElementById('cfgTemplate').value;
-            config.publicKey = document.getElementById('cfgKey').value;
-            config.destination = document.getElementById('cfgDest').value;
-            localStorage.setItem('sentinel_v6_config', JSON.stringify(config));
-            if(config.publicKey) emailjs.init(config.publicKey);
-            closeModals();
-        }
+        function deleteCurrentMonitor() { if(confirm("Excluir?")) { monitors = monitors.filter(m => m.id !== activeMonitorId); saveData(); closeDetail(); renderTiles(); } }
+        function simulateNetwork(m) { return new Promise(resolve => { const r = Math.random(); let code = 200, lat = Math.floor(Math.random() * 60) + 20; if(r > 0.85) { code = 500; lat += 250; } else if(r > 0.80) code = 429; setTimeout(() => resolve({ code, latency: lat }), 200); }); }
+        function saveConfig() { config.serviceId = document.getElementById('cfgService').value; config.templateId = document.getElementById('cfgTemplate').value; config.publicKey = document.getElementById('cfgKey').value; config.destination = document.getElementById('cfgDest').value; localStorage.setItem('sentinel_v6_config', JSON.stringify(config)); if(config.publicKey) emailjs.init(config.publicKey); closeModals(); }
         function saveData() { localStorage.setItem('sentinel_v6_monitors', JSON.stringify(monitors)); }
-        
-        function openModal(id) { 
-            document.getElementById(id).classList.add('active'); 
-            if(id==='modalConfig') {
-                document.getElementById('cfgService').value = config.serviceId||'';
-                document.getElementById('cfgTemplate').value = config.templateId||'';
-                document.getElementById('cfgKey').value = config.publicKey||'';
-                document.getElementById('cfgDest').value = config.destination||'';
-            }
-        }
-        function closeModals() { 
-            document.getElementById('modalAdd').classList.remove('active'); 
-            document.getElementById('modalConfig').classList.remove('active'); 
-        }
-
+        function openModal(id) { document.getElementById(id).classList.add('active'); if(id==='modalConfig') { document.getElementById('cfgService').value = config.serviceId||''; document.getElementById('cfgTemplate').value = config.templateId||''; document.getElementById('cfgKey').value = config.publicKey||''; document.getElementById('cfgDest').value = config.destination||''; } }
+        function closeModals() { document.getElementById('modalAdd').classList.remove('active'); document.getElementById('modalConfig').classList.remove('active'); }
     </script>
 </body>
 </html>
